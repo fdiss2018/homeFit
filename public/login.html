@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit - Connexion</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>👤 Mon compte</h1>
+    <p>Connecte-toi pour retrouver ton historique sur tous tes appareils.</p>
+  </header>
+
+  <main>
+    <a href="index.html" class="lien-retour">← Retour</a>
+
+    <div class="carte hidden" id="carte-connecte">
+      <p class="carte-titre">Connecté(e) en tant que <span id="nom-utilisateur"></span></p>
+      <button id="btn-deconnexion" class="btn-secondaire btn-large">Se déconnecter</button>
+    </div>
+
+    <div class="carte" id="carte-formulaire">
+      <p class="carte-titre" id="titre-formulaire">Connexion</p>
+
+      <button id="btn-google" class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" width="20" height="20">
+        Continuer avec Google
+      </button>
+      <p id="msg-google" class="msg hidden"></p>
+
+      <hr class="sep">
+
+      <p class="carte-desc" style="margin-bottom:14px">Ou avec un email</p>
+
+      <div class="champ" id="champ-nom" style="display:none">
+        <label for="nom">Pseudo</label>
+        <input type="text" id="nom" class="input" placeholder="Ton pseudo">
+      </div>
+      <div class="champ">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="input" placeholder="ton@email.com">
+      </div>
+      <div class="champ">
+        <label for="mot-de-passe">Mot de passe</label>
+        <input type="password" id="mot-de-passe" class="input" placeholder="••••••••">
+      </div>
+
+      <button id="btn-valider" class="btn-secondaire btn-large">Se connecter</button>
+      <p id="msg" class="msg hidden"></p>
+
+      <hr class="sep">
+      <p style="text-align:center; color:var(--texte-dim); font-size:0.88rem">
+        <span id="texte-bascule">Pas encore de compte ?</span>
+        <a href="#" id="lien-bascule">Créer un compte</a>
+      </p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { AuthService } from './services/AuthService.js';
+    import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+
+    const carteConnecte   = document.getElementById('carte-connecte');
+    const carteFormulaire = document.getElementById('carte-formulaire');
+    const nomUtilisateur  = document.getElementById('nom-utilisateur');
+    const btnDeconnexion  = document.getElementById('btn-deconnexion');
+
+    const btnGoogle      = document.getElementById('btn-google');
+    const msgGoogle      = document.getElementById('msg-google');
+    const champNom       = document.getElementById('champ-nom');
+    const inputNom       = document.getElementById('nom');
+    const inputEmail     = document.getElementById('email');
+    const inputMdp       = document.getElementById('mot-de-passe');
+    const btnValider      = document.getElementById('btn-valider');
+    const titreFormulaire = document.getElementById('titre-formulaire');
+    const texteBascule    = document.getElementById('texte-bascule');
+    const lienBascule     = document.getElementById('lien-bascule');
+    const msg             = document.getElementById('msg');
+
+    let modeInscription = false;
+
+    function afficherMsg(texte, erreur = false) {
+      msg.textContent = texte;
+      msg.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
+      msg.classList.remove('hidden');
+    }
+
+    lienBascule.addEventListener('click', e => {
+      e.preventDefault();
+      modeInscription = !modeInscription;
+      champNom.style.display = modeInscription ? 'block' : 'none';
+      titreFormulaire.textContent = modeInscription ? 'Créer un compte' : 'Connexion';
+      btnValider.textContent = modeInscription ? "S'inscrire" : 'Se connecter';
+      texteBascule.textContent = modeInscription ? 'Déjà un compte ?' : 'Pas encore de compte ?';
+      lienBascule.textContent = modeInscription ? 'Se connecter' : 'Créer un compte';
+      msg.classList.add('hidden');
+    });
+
+    btnValider.addEventListener('click', async () => {
+      const email = inputEmail.value.trim();
+      const mdp   = inputMdp.value;
+      if (!email || !mdp) { afficherMsg('Renseigne un email et un mot de passe.', true); return; }
+
+      btnValider.disabled = true;
+      try {
+        let uid;
+        if (modeInscription) {
+          const user = await AuthService.sInscrire(email, mdp, inputNom.value.trim());
+          uid = user.uid;
+        } else {
+          const user = await AuthService.seConnecter(email, mdp);
+          uid = user.uid;
+        }
+        await HistoriqueSeanceService.migrerDepuisLocalStorage(uid);
+        window.location.href = 'historique.html';
+      } catch (err) {
+        afficherMsg(traduireErreur(err), true);
+        btnValider.disabled = false;
+      }
+    });
+
+    btnDeconnexion.addEventListener('click', async () => {
+      await AuthService.seDeconnecter();
+    });
+
+    btnGoogle.addEventListener('click', async () => {
+      btnGoogle.disabled = true;
+      msgGoogle.classList.add('hidden');
+      try {
+        const user = await AuthService.seConnecterAvecGoogle();
+        await HistoriqueSeanceService.migrerDepuisLocalStorage(user.uid);
+        window.location.href = 'historique.html';
+      } catch (err) {
+        if (err.code !== 'auth/popup-closed-by-user') {
+          msgGoogle.textContent = traduireErreur(err);
+          msgGoogle.className = 'msg msg-erreur';
+          msgGoogle.classList.remove('hidden');
+        }
+        btnGoogle.disabled = false;
+      }
+    });
+
+    function traduireErreur(err) {
+      const code = err.code || '';
+      if (code.includes('email-already-in-use')) return 'Cet email est déjà utilisé.';
+      if (code.includes('invalid-credential') || code.includes('wrong-password')) return 'Email ou mot de passe incorrect.';
+      if (code.includes('weak-password')) return 'Mot de passe trop court (6 caractères minimum).';
+      if (code.includes('invalid-email')) return 'Email invalide.';
+      return err.message || 'Une erreur est survenue.';
+    }
+
+    AuthService.ecouterAuth(user => {
+      if (user) {
+        nomUtilisateur.textContent = user.displayName || user.email;
+        carteConnecte.classList.remove('hidden');
+        carteFormulaire.classList.add('hidden');
+      } else {
+        carteConnecte.classList.add('hidden');
+        carteFormulaire.classList.remove('hidden');
+      }
+    });
+  </script>
+
+</body>
+</html>

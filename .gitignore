@@ -1,0 +1,29 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+firebase-debug.log*
+firebase-debug.*.log*
+
+# Firebase cache
+.firebase/
+
+# Firebase config — clés de projet, à ne pas committer (voir firebase-config.example.js)
+public/firebase-config.js
+
+# Claude Code local settings
+.claude/
+
+# Uncomment this if you'd like others to create their own Firebase project.
+# .firebaserc
+
+# Coverage
+coverage
+.coverage
+
+# Dependencies
+node_modules/
+
+# Divers
+.env
+*.tgz

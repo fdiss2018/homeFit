@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit - Administration</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>⚙️ Administration</h1>
+    <p>Gestion de la bibliothèque d'exercices.</p>
+    <button id="btn-logout" class="btn-secondaire hidden" style="margin-top:10px">Déconnexion</button>
+  </header>
+
+  <main>
+    <div class="carte">
+      <p class="carte-titre">📚 Bibliothèque d'exercices</p>
+      <p class="carte-desc">Importe un fichier JSON (tableau d'exercices ou <code>{ "exercices": [...] }</code>).</p>
+
+      <label for="fichier-exercices" class="btn-primaire">📂 Importer des exercices (.json)</label>
+      <input type="file" id="fichier-exercices" accept=".json" class="hidden">
+      <p id="msg-import" class="msg hidden"></p>
+    </div>
+
+    <div class="carte">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <p class="carte-titre" style="margin:0">Exercices existants</p>
+        <span id="compte-exercices" class="carte-desc" style="margin:0"></span>
+      </div>
+      <hr class="sep">
+      <div id="liste-admin">
+        <p class="chargement">Chargement...</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { ADMIN_EMAIL } from './auth-config.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+    import { Exercice } from './models/Exercice.js';
+    import { ExerciceService } from './services/ExerciceService.js';
+
+    const btnLogout = document.getElementById('btn-logout');
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      if (user.email !== ADMIN_EMAIL) {
+        signOut(auth).finally(() => { window.location.href = 'login.html'; });
+        return;
+      }
+      btnLogout.classList.remove('hidden');
+    });
+
+    btnLogout.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+
+    function afficherMsg(el, texte, erreur = false) {
+      el.textContent = texte;
+      el.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+
+    const fichierInput = document.getElementById('fichier-exercices');
+    const msgImport = document.getElementById('msg-import');
+    const listeAdmin = document.getElementById('liste-admin');
+    const compteExercices = document.getElementById('compte-exercices');
+
+    fichierInput.addEventListener('change', () => {
+      const fichier = fichierInput.files[0];
+      if (!fichier) return;
+
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const items = Array.isArray(data) ? data : (data.exercices || []);
+          if (items.length === 0) throw new Error('Aucun exercice trouvé dans le fichier.');
+
+          let ok = 0, ko = 0;
+          for (const item of items) {
+            try {
+              await ExerciceService.creer(new Exercice(item));
+              ok++;
+            } catch { ko++; }
+          }
+
+          afficherMsg(msgImport, ko === 0
+            ? `✅ ${ok} exercice${ok > 1 ? 's' : ''} importé${ok > 1 ? 's' : ''}.`
+            : `⚠️ ${ok} importé(s), ${ko} en échec.`, ko > 0);
+        } catch (err) {
+          afficherMsg(msgImport, `❌ ${err.message}`, true);
+        }
+        fichierInput.value = '';
+      };
+      reader.readAsText(fichier);
+    });
+
+    function afficherListe(exercices) {
+      compteExercices.textContent = `${exercices.length} exercice${exercices.length > 1 ? 's' : ''}`;
+
+      if (exercices.length === 0) {
+        listeAdmin.innerHTML = '<p class="vide">Aucun exercice importé.</p>';
+        return;
+      }
+
+      listeAdmin.innerHTML = '';
+      exercices.forEach(ex => {
+        const row = document.createElement('div');
+        row.className = 'bloc-exercice';
+        row.innerHTML = `
+          <div class="bloc-info">
+            <div class="bloc-nom">${ex.nom}</div>
+            <div class="bloc-detail">${ex.groupeMusculaire} · ${ex.niveau}</div>
+          </div>
+          <button class="btn-danger" data-id="${ex.id}">🗑️</button>
+        `;
+        row.querySelector('button').addEventListener('click', async () => {
+          if (!confirm(`Supprimer « ${ex.nom} » ?`)) return;
+          await ExerciceService.supprimer(ex.id);
+        });
+        listeAdmin.appendChild(row);
+      });
+    }
+
+    ExerciceService.ecouterTous(afficherListe);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>🏋️ HomeFit</h1>
+    <p>Ta séance de sport à la maison, générée sur mesure.</p>
+  </header>
+
+  <main>
+    <div class="nav-accueil">
+      <a href="generateur.html" class="nav-tuile">
+        <span class="icone">⚡</span>
+        <span class="titre">Générer une séance</span>
+      </a>
+      <a href="exercices.html" class="nav-tuile">
+        <span class="icone">📚</span>
+        <span class="titre">Bibliothèque d'exercices</span>
+      </a>
+      <a href="historique.html" class="nav-tuile">
+        <span class="icone">📈</span>
+        <span class="titre">Mon historique</span>
+      </a>
+      <a href="login.html" id="lien-compte" class="nav-tuile">
+        <span class="icone">👤</span>
+        <span class="titre" id="lien-compte-titre">Connexion</span>
+      </a>
+    </div>
+
+    <p id="msg-connecte" class="msg msg-ok hidden"></p>
+  </main>
+
+  <script type="module">
+    import { AuthService } from './services/AuthService.js';
+
+    AuthService.ecouterAuth(user => {
+      const titre = document.getElementById('lien-compte-titre');
+      const lien  = document.getElementById('lien-compte');
+      if (user) {
+        titre.textContent = user.displayName || 'Mon compte';
+        lien.href = 'historique.html';
+      } else {
+        titre.textContent = 'Connexion';
+        lien.href = 'login.html';
+      }
+    });
+  </script>
+
+</body>
+</html>

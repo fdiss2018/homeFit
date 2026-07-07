@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit - Générateur de séance</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>⚡ Générateur de séance</h1>
+    <p>Choisis tes critères, on s'occupe du reste.</p>
+  </header>
+
+  <main>
+    <a href="index.html" class="lien-retour">← Retour</a>
+
+    <div class="carte" id="carte-formulaire">
+      <div class="champ">
+        <label for="duree">Durée souhaitée</label>
+        <select id="duree" class="input">
+          <option value="10">10 minutes</option>
+          <option value="20" selected>20 minutes</option>
+          <option value="30">30 minutes</option>
+          <option value="45">45 minutes</option>
+          <option value="60">60 minutes</option>
+        </select>
+      </div>
+
+      <div class="champ">
+        <label>Groupes musculaires <span style="text-transform:none">(vide = tous)</span></label>
+        <div class="grille-choix" id="choix-groupes"></div>
+      </div>
+
+      <div class="champ">
+        <label>Matériel disponible <span style="text-transform:none">(vide = poids du corps uniquement)</span></label>
+        <div class="grille-choix" id="choix-materiel"></div>
+      </div>
+
+      <div class="champ">
+        <label for="niveau">Niveau</label>
+        <select id="niveau" class="input">
+          <option value="debutant">Débutant</option>
+          <option value="intermediaire" selected>Intermédiaire</option>
+          <option value="avance">Avancé</option>
+        </select>
+      </div>
+
+      <button id="btn-generer" class="btn-primaire btn-large">⚡ Générer ma séance</button>
+      <p id="msg-formulaire" class="msg msg-erreur hidden"></p>
+    </div>
+
+    <div class="carte hidden" id="carte-resultat">
+      <p class="carte-titre">Ta séance</p>
+      <p class="carte-desc" id="resume-seance"></p>
+      <div id="liste-blocs"></div>
+      <div style="display:flex; gap:10px; margin-top:12px">
+        <button id="btn-enregistrer" class="btn-primaire" style="flex:1">💾 Enregistrer</button>
+        <button id="btn-regenerer" class="btn-secondaire" style="flex:1">🔄 Une autre</button>
+      </div>
+      <p id="msg-resultat" class="msg hidden"></p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { ExerciceService } from './services/ExerciceService.js';
+    import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
+    import { genererSeance } from './utils/GenerateurSeance.js';
+    import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+
+    const MATERIEL_DISPONIBLE = ['halteres', 'tapis', 'banc', 'elastique', 'kettlebell'];
+    const LIBELLES = {
+      jambes: 'Jambes', dos: 'Dos', pectoraux: 'Pectoraux', epaules: 'Épaules',
+      bras: 'Bras', abdominaux: 'Abdominaux', cardio: 'Cardio', 'full-body': 'Full-body',
+      halteres: 'Haltères', tapis: 'Tapis', banc: 'Banc', elastique: 'Élastique', kettlebell: 'Kettlebell'
+    };
+
+    function creerChoix(conteneur, valeurs) {
+      valeurs.forEach(valeur => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'choix';
+        el.textContent = LIBELLES[valeur] || valeur;
+        el.dataset.valeur = valeur;
+        el.addEventListener('click', () => el.classList.toggle('actif'));
+        conteneur.appendChild(el);
+      });
+    }
+
+    const choixGroupes  = document.getElementById('choix-groupes');
+    const choixMateriel = document.getElementById('choix-materiel');
+    creerChoix(choixGroupes, GROUPES_MUSCULAIRES);
+    creerChoix(choixMateriel, MATERIEL_DISPONIBLE);
+
+    function valeursActives(conteneur) {
+      return [...conteneur.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur);
+    }
+
+    const btnGenerer      = document.getElementById('btn-generer');
+    const msgFormulaire   = document.getElementById('msg-formulaire');
+    const carteResultat   = document.getElementById('carte-resultat');
+    const resumeSeance    = document.getElementById('resume-seance');
+    const listeBlocs      = document.getElementById('liste-blocs');
+    const btnEnregistrer  = document.getElementById('btn-enregistrer');
+    const btnRegenerer    = document.getElementById('btn-regenerer');
+    const msgResultat     = document.getElementById('msg-resultat');
+
+    let exercices = [];
+    let seanceCourante = null;
+
+    async function chargerExercices() {
+      exercices = await ExerciceService.listerTous();
+    }
+
+    function afficherSeance(seance) {
+      seanceCourante = seance;
+      resumeSeance.textContent =
+        `${seance.blocs.length} exercice${seance.blocs.length > 1 ? 's' : ''} · ~${seance.dureeEstimeeMinutes} min`;
+
+      listeBlocs.innerHTML = '';
+      seance.blocs.forEach((bloc, i) => {
+        const valeurTexte = bloc.type === 'duree' ? `${bloc.valeur} s` : `${bloc.valeur} reps`;
+        const div = document.createElement('div');
+        div.className = 'bloc-exercice';
+        div.innerHTML = `
+          <div class="bloc-num">${i + 1}</div>
+          <div class="bloc-info">
+            <div class="bloc-nom">${bloc.exercice.nom}</div>
+            <div class="bloc-detail">${bloc.series} séries × ${valeurTexte} — repos ${bloc.reposSecondes}s</div>
+          </div>
+        `;
+        listeBlocs.appendChild(div);
+      });
+
+      carteResultat.classList.remove('hidden');
+      msgResultat.classList.add('hidden');
+      btnEnregistrer.disabled = false;
+      btnEnregistrer.textContent = '💾 Enregistrer';
+    }
+
+    async function genererEtAfficher() {
+      msgFormulaire.classList.add('hidden');
+      if (exercices.length === 0) {
+        msgFormulaire.textContent = "Aucun exercice n'est encore disponible dans la bibliothèque. Importe-en depuis admin.html.";
+        msgFormulaire.classList.remove('hidden');
+        return;
+      }
+
+      const criteres = {
+        dureeMinutes: parseInt(document.getElementById('duree').value, 10),
+        groupesMusculaires: valeursActives(choixGroupes),
+        materielDisponible: valeursActives(choixMateriel),
+        niveau: document.getElementById('niveau').value
+      };
+
+      try {
+        const seance = genererSeance(exercices, criteres);
+        afficherSeance(seance);
+      } catch (err) {
+        msgFormulaire.textContent = err.message;
+        msgFormulaire.classList.remove('hidden');
+      }
+    }
+
+    btnGenerer.addEventListener('click', genererEtAfficher);
+    btnRegenerer.addEventListener('click', genererEtAfficher);
+
+    btnEnregistrer.addEventListener('click', async () => {
+      if (!seanceCourante) return;
+      btnEnregistrer.disabled = true;
+      try {
+        await HistoriqueSeanceService.ajouter(seanceCourante);
+        msgResultat.textContent = '✅ Séance enregistrée dans ton historique.';
+        msgResultat.className = 'msg msg-ok';
+        msgResultat.classList.remove('hidden');
+      } catch (err) {
+        msgResultat.textContent = `❌ ${err.message}`;
+        msgResultat.className = 'msg msg-erreur';
+        msgResultat.classList.remove('hidden');
+        btnEnregistrer.disabled = false;
+      }
+    });
+
+    chargerExercices();
+  </script>
+
+</body>
+</html>

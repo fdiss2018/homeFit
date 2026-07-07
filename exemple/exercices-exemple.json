@@ -1,0 +1,104 @@
+{
+  "exercices": [
+    {
+      "nom": "Pompes",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "debutant",
+      "type": "repetitions",
+      "valeurDefaut": 12,
+      "description": "Exercice de poussée au poids du corps.",
+      "instructions": "Mains légèrement plus larges que les épaules, corps gainé, descendre jusqu'à effleurer le sol puis pousser."
+    },
+    {
+      "nom": "Squats",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "type": "repetitions",
+      "valeurDefaut": 15,
+      "description": "Exercice de flexion des jambes au poids du corps.",
+      "instructions": "Pieds largeur de bassin, descendre comme pour s'asseoir en gardant le dos droit."
+    },
+    {
+      "nom": "Gainage planche",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "type": "duree",
+      "valeurDefaut": 30,
+      "description": "Gainage statique en appui sur les avant-bras.",
+      "instructions": "Corps aligné de la tête aux pieds, abdominaux contractés."
+    },
+    {
+      "nom": "Fentes avant",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "type": "repetitions",
+      "valeurDefaut": 12,
+      "description": "Fentes alternées au poids du corps.",
+      "instructions": "Grand pas en avant, descendre le genou arrière vers le sol sans le toucher."
+    },
+    {
+      "nom": "Tractions australiennes",
+      "groupeMusculaire": "dos",
+      "materiel": ["banc"],
+      "niveau": "intermediaire",
+      "type": "repetitions",
+      "valeurDefaut": 10,
+      "description": "Tirage horizontal sous une barre ou une table basse.",
+      "instructions": "Corps gainé, tirer la poitrine vers l'appui en serrant les omoplates."
+    },
+    {
+      "nom": "Développé haltères",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "type": "repetitions",
+      "valeurDefaut": 10,
+      "description": "Développé militaire assis ou debout.",
+      "instructions": "Pousser les haltères au-dessus de la tête sans cambrer le dos."
+    },
+    {
+      "nom": "Curl biceps haltères",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "type": "repetitions",
+      "valeurDefaut": 12,
+      "description": "Flexion des avant-bras avec haltères.",
+      "instructions": "Coudes fixes le long du corps, remonter les haltères en contractant les biceps."
+    },
+    {
+      "nom": "Mountain climbers",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "type": "duree",
+      "valeurDefaut": 40,
+      "description": "Exercice cardio en position de planche.",
+      "instructions": "Ramener alternativement les genoux vers la poitrine en position de planche haute, rythme soutenu."
+    },
+    {
+      "nom": "Swing kettlebell",
+      "groupeMusculaire": "full-body",
+      "materiel": ["kettlebell"],
+      "niveau": "avance",
+      "type": "repetitions",
+      "valeurDefaut": 15,
+      "description": "Mouvement de hanche explosif avec kettlebell.",
+      "instructions": "Dos plat, propulser la kettlebell avec les hanches, pas avec les bras."
+    },
+    {
+      "nom": "Burpees",
+      "groupeMusculaire": "full-body",
+      "materiel": [],
+      "niveau": "avance",
+      "type": "repetitions",
+      "valeurDefaut": 10,
+      "description": "Enchaînement complet cardio + renforcement.",
+      "instructions": "Squat, planche, pompe, saut groupé, saut vertical — enchaîner sans pause."
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit - Bibliothèque d'exercices</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>📚 Exercices</h1>
+    <p>La bibliothèque complète des exercices disponibles.</p>
+  </header>
+
+  <main>
+    <a href="index.html" class="lien-retour">← Retour</a>
+
+    <div class="carte">
+      <input type="text" id="recherche" class="input" placeholder="🔍 Rechercher un exercice…" autocomplete="off">
+    </div>
+
+    <div id="liste-exercices">
+      <p class="chargement">Chargement...</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { ExerciceService } from './services/ExerciceService.js';
+
+    const NIVEAU_LIBELLE = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+
+    const listeEl = document.getElementById('liste-exercices');
+    const rechercheEl = document.getElementById('recherche');
+    let tousLesExercices = [];
+
+    function normaliser(texte) {
+      return (texte || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+
+    function afficher(exercices) {
+      if (exercices.length === 0) {
+        listeEl.innerHTML = tousLesExercices.length === 0
+          ? '<p class="vide">Aucun exercice dans la bibliothèque pour le moment.</p>'
+          : '<p class="vide">Aucun résultat pour cette recherche.</p>';
+        return;
+      }
+
+      listeEl.innerHTML = '';
+      exercices.forEach(ex => {
+        const materiel = (ex.materiel || []).length ? ex.materiel.join(', ') : 'Aucun matériel';
+        const valeur = ex.type === 'duree' ? `${ex.valeurDefaut}s` : `${ex.valeurDefaut} reps`;
+        const div = document.createElement('div');
+        div.className = 'carte';
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:start; gap:10px">
+            <p class="carte-titre">${ex.nom}</p>
+            <span class="badge">${NIVEAU_LIBELLE[ex.niveau] || ex.niveau}</span>
+          </div>
+          <p class="carte-desc">${ex.groupeMusculaire} · ${materiel} · ${valeur}</p>
+          ${ex.description ? `<p class="carte-desc">${ex.description}</p>` : ''}
+        `;
+        listeEl.appendChild(div);
+      });
+    }
+
+    function filtrer() {
+      const terme = normaliser(rechercheEl.value.trim());
+      const filtres = terme
+        ? tousLesExercices.filter(ex =>
+            normaliser(ex.nom).includes(terme) || normaliser(ex.groupeMusculaire).includes(terme))
+        : tousLesExercices;
+      afficher(filtres);
+    }
+
+    rechercheEl.addEventListener('input', filtrer);
+
+    ExerciceService.ecouterTous(exercices => {
+      tousLesExercices = exercices;
+      filtrer();
+    });
+  </script>
+
+</body>
+</html>
