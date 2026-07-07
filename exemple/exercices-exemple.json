@@ -1,92 +1,1419 @@
 {
   "exercices": [
     {
-      "nom": "Pompes",
-      "groupeMusculaire": "pectoraux",
-      "materiel": [],
-      "niveau": "debutant",
-      "type": "repetitions",
-      "valeurDefaut": 12,
-      "description": "Exercice de poussée au poids du corps.",
-      "instructions": "Mains légèrement plus larges que les épaules, corps gainé, descendre jusqu'à effleurer le sol puis pousser."
-    },
-    {
       "nom": "Squats",
       "groupeMusculaire": "jambes",
       "materiel": [],
       "niveau": "debutant",
-      "type": "repetitions",
-      "valeurDefaut": 15,
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
       "description": "Exercice de flexion des jambes au poids du corps.",
       "instructions": "Pieds largeur de bassin, descendre comme pour s'asseoir en gardant le dos droit."
-    },
-    {
-      "nom": "Gainage planche",
-      "groupeMusculaire": "abdominaux",
-      "materiel": [],
-      "niveau": "debutant",
-      "type": "duree",
-      "valeurDefaut": 30,
-      "description": "Gainage statique en appui sur les avant-bras.",
-      "instructions": "Corps aligné de la tête aux pieds, abdominaux contractés."
     },
     {
       "nom": "Fentes avant",
       "groupeMusculaire": "jambes",
       "materiel": [],
       "niveau": "intermediaire",
-      "type": "repetitions",
-      "valeurDefaut": 12,
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
       "description": "Fentes alternées au poids du corps.",
       "instructions": "Grand pas en avant, descendre le genou arrière vers le sol sans le toucher."
     },
+    {
+      "nom": "Squat sauté",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Squat explosif avec impulsion verticale.",
+      "instructions": "Descendre en squat puis sauter le plus haut possible, atterrir en amortissant dans un nouveau squat."
+    },
+    {
+      "nom": "Squat bulgare",
+      "groupeMusculaire": "jambes",
+      "materiel": ["banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Squat unilatéral, pied arrière posé sur un banc.",
+      "instructions": "Pied arrière surélevé sur le banc, descendre sur la jambe avant en gardant le buste droit."
+    },
+    {
+      "nom": "Fente arrière",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Fente reculée au poids du corps.",
+      "instructions": "Grand pas en arrière, descendre le genou arrière vers le sol puis revenir à la position debout."
+    },
+    {
+      "nom": "Fente latérale",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Fente sur le côté pour cibler l'intérieur des cuisses.",
+      "instructions": "Grand pas latéral, fléchir la jambe du côté du pas en gardant l'autre jambe tendue."
+    },
+    {
+      "nom": "Chaise contre un mur",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Gainage statique des cuisses, dos contre un mur.",
+      "instructions": "Dos plaqué au mur, cuisses parallèles au sol comme assis sur une chaise invisible, tenir la position."
+    },
+    {
+      "nom": "Pont fessier",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Extension de hanche au sol pour cibler les fessiers.",
+      "instructions": "Allongé sur le dos, genoux pliés, pousser les hanches vers le haut en contractant les fessiers."
+    },
+    {
+      "nom": "Pont fessier une jambe",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pont fessier unilatéral, plus exigeant en stabilité.",
+      "instructions": "Une jambe tendue en l'air, pousser les hanches vers le haut avec la jambe restée au sol."
+    },
+    {
+      "nom": "Squat sumo",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Squat pieds écartés, pointes vers l'extérieur.",
+      "instructions": "Pieds bien plus larges que les épaules, descendre en poussant les genoux vers l'extérieur."
+    },
+    {
+      "nom": "Squat goblet",
+      "groupeMusculaire": "jambes",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Squat avec un haltère tenu contre la poitrine.",
+      "instructions": "Haltère tenu à deux mains devant la poitrine, descendre en squat en gardant le dos droit."
+    },
+    {
+      "nom": "Fente bulgare haltères",
+      "groupeMusculaire": "jambes",
+      "materiel": ["halteres", "banc"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Squat bulgare lesté pour plus d'intensité.",
+      "instructions": "Un haltère dans chaque main, pied arrière sur le banc, descendre sur la jambe avant."
+    },
+    {
+      "nom": "Soulevé de terre jambes tendues haltères",
+      "groupeMusculaire": "jambes",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Renforcement des ischios-jambiers et fessiers avec haltères.",
+      "instructions": "Jambes légèrement fléchies, descendre les haltères le long des jambes en gardant le dos plat."
+    },
+    {
+      "nom": "Mollets debout",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Élévation sur la pointe des pieds pour cibler les mollets.",
+      "instructions": "Debout, monter sur la pointe des pieds puis redescendre lentement."
+    },
+    {
+      "nom": "Step-up sur banc",
+      "groupeMusculaire": "jambes",
+      "materiel": ["banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Montée sur un banc, un pied après l'autre.",
+      "instructions": "Monter sur le banc avec une jambe en poussant sur le talon, puis redescendre et alterner."
+    },
+    {
+      "nom": "Squat isométrique avec pulse",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Squat maintenu en position basse avec petits rebonds.",
+      "instructions": "Descendre en squat et rester en position basse en effectuant de petits mouvements de pulse."
+    },
+    {
+      "nom": "Fente sautée alternée",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Fentes avec saut pour alterner les jambes en l'air.",
+      "instructions": "En position de fente, sauter pour changer de jambe en l'air et retomber en fente inversée."
+    },
+    {
+      "nom": "Extension de hanche à quatre pattes",
+      "groupeMusculaire": "jambes",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension de jambe en quadrupédie pour cibler les fessiers.",
+      "instructions": "En quadrupédie, tendre une jambe vers l'arrière et la lever sans creuser le dos, puis alterner."
+    },
+    {
+      "nom": "Curl jambes avec élastique",
+      "groupeMusculaire": "jambes",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Flexion de jambe allongé avec résistance élastique.",
+      "instructions": "Allongé sur le ventre, élastique fixé à la cheville, plier le genou en ramenant le talon vers les fessiers."
+    },
+    {
+      "nom": "Squat avec élastique aux genoux",
+      "groupeMusculaire": "jambes",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Squat avec bande de résistance placée au-dessus des genoux.",
+      "instructions": "Élastique autour des genoux, descendre en squat en poussant les genoux vers l'extérieur contre la résistance."
+    },
+
     {
       "nom": "Tractions australiennes",
       "groupeMusculaire": "dos",
       "materiel": ["banc"],
       "niveau": "intermediaire",
-      "type": "repetitions",
-      "valeurDefaut": 10,
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
       "description": "Tirage horizontal sous une barre ou une table basse.",
       "instructions": "Corps gainé, tirer la poitrine vers l'appui en serrant les omoplates."
     },
+    {
+      "nom": "Extension lombaire au sol",
+      "groupeMusculaire": "dos",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Extension du buste allongé sur le ventre pour renforcer le bas du dos.",
+      "instructions": "Allongé sur le ventre, mains le long du corps, soulever légèrement la poitrine du sol puis relâcher."
+    },
+    {
+      "nom": "Rowing haltère unilatéral",
+      "groupeMusculaire": "dos",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Tirage d'un haltère, buste penché en appui sur l'autre bras.",
+      "instructions": "Buste penché en avant, tirer l'haltère vers la hanche en serrant l'omoplate."
+    },
+    {
+      "nom": "Rowing élastique",
+      "groupeMusculaire": "dos",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Tirage horizontal avec bande élastique fixée devant soi.",
+      "instructions": "Élastique tendu devant, tirer les coudes vers l'arrière en serrant les omoplates."
+    },
+    {
+      "nom": "Tirage élastique vertical",
+      "groupeMusculaire": "dos",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Tirage vertical simulant un tirage de dos à la poulie.",
+      "instructions": "Élastique fixé en hauteur, tirer les mains vers les épaules en ouvrant les coudes."
+    },
+    {
+      "nom": "Good morning haltères",
+      "groupeMusculaire": "dos",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Flexion de buste jambes tendues pour renforcer le bas du dos.",
+      "instructions": "Haltères légers sur les épaules, incliner le buste vers l'avant en gardant le dos plat puis revenir."
+    },
+    {
+      "nom": "Soulevé de terre roumain haltères",
+      "groupeMusculaire": "dos",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Soulevé de terre jambes semi-tendues, haltères le long du corps.",
+      "instructions": "Descendre les haltères le long des jambes en poussant les hanches vers l'arrière, dos plat."
+    },
+    {
+      "nom": "Extension dorsale alternée bras/jambe",
+      "groupeMusculaire": "dos",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension dorsale en alternant bras et jambe opposés.",
+      "instructions": "Allongé sur le ventre, lever simultanément un bras et la jambe opposée, puis alterner."
+    },
+    {
+      "nom": "Rowing banc incliné haltères",
+      "groupeMusculaire": "dos",
+      "materiel": ["halteres", "banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Tirage de dos en appui allongé sur un banc incliné.",
+      "instructions": "Poitrine appuyée sur le banc, tirer les haltères vers les hanches en serrant les omoplates."
+    },
+    {
+      "nom": "Extension dorsale nage",
+      "groupeMusculaire": "dos",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Extension dorsale dynamique façon mouvement de nage.",
+      "instructions": "Allongé sur le ventre, alterner des mouvements de bras et jambes comme en crawl, buste légèrement décollé."
+    },
+    {
+      "nom": "Tirage buste penché élastique",
+      "groupeMusculaire": "dos",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Tirage horizontal buste penché avec élastique sous les pieds.",
+      "instructions": "Buste penché en avant, élastique sous les pieds, tirer les mains vers les hanches."
+    },
+    {
+      "nom": "Pull-apart élastique",
+      "groupeMusculaire": "dos",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Écartement d'un élastique tenu à deux mains devant soi.",
+      "instructions": "Bras tendus devant soi, écarter les mains en ouvrant l'élastique jusqu'à la poitrine puis revenir."
+    },
+    {
+      "nom": "Rowing kettlebell",
+      "groupeMusculaire": "dos",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Tirage d'une kettlebell, buste penché en avant.",
+      "instructions": "Buste penché, dos plat, tirer la kettlebell vers la hanche en serrant l'omoplate."
+    },
+    {
+      "nom": "Shrugs haltères",
+      "groupeMusculaire": "dos",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Élévation des épaules pour cibler le haut du dos et les trapèzes.",
+      "instructions": "Haltères le long du corps, monter les épaules vers les oreilles puis relâcher."
+    },
+    {
+      "nom": "Soulevé de terre kettlebell",
+      "groupeMusculaire": "dos",
+      "materiel": ["kettlebell"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Soulevé de terre avec une kettlebell entre les pieds.",
+      "instructions": "Hanches en arrière, dos plat, saisir la kettlebell au sol et se redresser en poussant sur les jambes."
+    },
+    {
+      "nom": "Extension lombaire sur banc",
+      "groupeMusculaire": "dos",
+      "materiel": ["banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension du buste, bassin en appui sur un banc.",
+      "instructions": "Bassin calé sur le banc, buste penché vers le sol, remonter en gardant le dos plat."
+    },
+    {
+      "nom": "Tirage horizontal élastique",
+      "groupeMusculaire": "dos",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Tirage horizontal assis, élastique fixé à un point stable.",
+      "instructions": "Assis, jambes tendues, élastique fixé devant, tirer les coudes vers l'arrière."
+    },
+    {
+      "nom": "Rowing haltères buste penché",
+      "groupeMusculaire": "dos",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Tirage de deux haltères simultanément, buste penché.",
+      "instructions": "Buste penché en avant, dos plat, tirer les deux haltères vers les hanches en serrant les omoplates."
+    },
+    {
+      "nom": "Pont fessier avec extension dos",
+      "groupeMusculaire": "dos",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Pont fessier combiné à une légère extension du haut du dos.",
+      "instructions": "En pont fessier, presser les omoplates dans le sol en poussant les hanches vers le haut."
+    },
+    {
+      "nom": "Rotation du buste élastique",
+      "groupeMusculaire": "dos",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Rotation du buste avec résistance élastique fixée sur le côté.",
+      "instructions": "Élastique fixé sur le côté à hauteur de poitrine, tourner le buste en tirant la poignée vers l'autre côté."
+    },
+
+    {
+      "nom": "Pompes",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Exercice de poussée au poids du corps.",
+      "instructions": "Mains légèrement plus larges que les épaules, corps gainé, descendre jusqu'à effleurer le sol puis pousser."
+    },
+    {
+      "nom": "Pompes sur les genoux",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Variante de pompe plus accessible, appui sur les genoux.",
+      "instructions": "Genoux au sol, corps gainé des genoux à la tête, descendre puis pousser."
+    },
+    {
+      "nom": "Pompes larges",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Pompes mains très écartées pour cibler davantage les pectoraux.",
+      "instructions": "Mains bien plus larges que les épaules, descendre en gardant les coudes ouverts."
+    },
+    {
+      "nom": "Pompes serrées",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompes mains rapprochées pour cibler pectoraux internes et triceps.",
+      "instructions": "Mains rapprochées sous la poitrine, coudes proches du corps en descendant."
+    },
+    {
+      "nom": "Pompes déclinées",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["banc"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompes pieds surélevés sur un banc pour plus d'intensité.",
+      "instructions": "Pieds posés sur le banc, mains au sol, descendre en gardant le corps gainé."
+    },
+    {
+      "nom": "Pompes inclinées",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["banc"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Pompes mains sur un banc, version accessible.",
+      "instructions": "Mains posées sur le banc, corps incliné, descendre la poitrine vers l'appui puis pousser."
+    },
+    {
+      "nom": "Développé couché haltères",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["halteres", "banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Développé couché sur banc avec haltères.",
+      "instructions": "Allongé sur le banc, pousser les haltères au-dessus de la poitrine puis redescendre en contrôlant."
+    },
+    {
+      "nom": "Écarté couché haltères",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["halteres", "banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Écarté allongé pour isoler les pectoraux.",
+      "instructions": "Allongé sur le banc, bras légèrement fléchis, écarter puis refermer les haltères au-dessus de la poitrine."
+    },
+    {
+      "nom": "Pull-over haltère",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Extension des bras derrière la tête pour étirer et cibler les pectoraux.",
+      "instructions": "Allongé, haltère tenu à deux mains, descendre les bras tendus derrière la tête puis revenir."
+    },
+    {
+      "nom": "Pompes diamant",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompes mains jointes en losange sous la poitrine.",
+      "instructions": "Mains jointes formant un losange sous le sternum, descendre en gardant les coudes proches du corps."
+    },
+    {
+      "nom": "Pompes archer",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 24,
+      "description": "Pompe asymétrique déplaçant le poids sur un bras.",
+      "instructions": "Mains très écartées, descendre en pliant un bras tandis que l'autre reste tendu sur le côté, puis alterner."
+    },
+    {
+      "nom": "Développé haltères banc incliné",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["halteres", "banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Développé sur banc incliné pour cibler le haut des pectoraux.",
+      "instructions": "Banc incliné, pousser les haltères au-dessus des épaules puis redescendre en contrôlant."
+    },
+    {
+      "nom": "Pompes plyométriques",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 24,
+      "description": "Pompe explosive avec décollement des mains du sol.",
+      "instructions": "Pousser assez fort pour décoller les mains du sol, réceptionner en amortissant et redescendre."
+    },
+    {
+      "nom": "Dips sur banc",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Flexion des bras en appui dorsal sur un banc.",
+      "instructions": "Mains sur le bord du banc, jambes tendues devant, descendre les hanches en pliant les coudes puis remonter."
+    },
+    {
+      "nom": "Pull-over kettlebell",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pull-over allongé avec une kettlebell.",
+      "instructions": "Allongé, kettlebell tenue à deux mains, descendre les bras tendus derrière la tête puis revenir."
+    },
+    {
+      "nom": "Pompes avec élastique",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["elastique"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompes avec résistance ajoutée par un élastique passé dans le dos.",
+      "instructions": "Élastique passé dans le dos et tenu sous chaque main, effectuer la pompe contre la résistance."
+    },
+    {
+      "nom": "Écarté élastique debout",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Écarté debout avec élastique fixé derrière soi.",
+      "instructions": "Élastique fixé derrière, bras tendus sur les côtés, ramener les mains devant la poitrine."
+    },
+    {
+      "nom": "Pompes genoux inclinées",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["banc"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Version très accessible combinant appui incliné et genoux au sol.",
+      "instructions": "Mains sur le banc, genoux au sol, descendre la poitrine vers l'appui puis pousser."
+    },
+    {
+      "nom": "Gainage pompe isométrique",
+      "groupeMusculaire": "pectoraux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 7,
+      "valeurDefautDuree": 20,
+      "description": "Maintien statique à mi-hauteur d'une pompe.",
+      "instructions": "Descendre à mi-chemin de la pompe et maintenir la position, coudes à 90 degrés environ."
+    },
+    {
+      "nom": "Pompes sur tapis",
+      "groupeMusculaire": "pectoraux",
+      "materiel": ["tapis"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Pompes classiques réalisées sur un tapis pour plus de confort.",
+      "instructions": "Mains légèrement plus larges que les épaules sur le tapis, descendre puis pousser."
+    },
+
     {
       "nom": "Développé haltères",
       "groupeMusculaire": "epaules",
       "materiel": ["halteres"],
       "niveau": "intermediaire",
-      "type": "repetitions",
-      "valeurDefaut": 10,
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
       "description": "Développé militaire assis ou debout.",
       "instructions": "Pousser les haltères au-dessus de la tête sans cambrer le dos."
     },
+    {
+      "nom": "Élévations latérales haltères",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Élévation des bras sur le côté pour cibler le deltoïde latéral.",
+      "instructions": "Bras légèrement fléchis, lever les haltères sur les côtés jusqu'à hauteur d'épaule puis redescendre."
+    },
+    {
+      "nom": "Élévations frontales haltères",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Élévation des bras devant soi pour le deltoïde antérieur.",
+      "instructions": "Lever les haltères devant soi jusqu'à hauteur d'épaule, en alternant ou simultanément, puis redescendre."
+    },
+    {
+      "nom": "Oiseau (élévations arrière) haltères",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Élévation buste penché pour cibler le deltoïde postérieur.",
+      "instructions": "Buste penché en avant, écarter les haltères sur les côtés en serrant les omoplates."
+    },
+    {
+      "nom": "Rotation externe élastique",
+      "groupeMusculaire": "epaules",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Rotation de l'épaule pour renforcer les stabilisateurs.",
+      "instructions": "Coude fixe à 90 degrés contre le corps, tourner l'avant-bras vers l'extérieur contre l'élastique."
+    },
+    {
+      "nom": "Élévation latérale élastique",
+      "groupeMusculaire": "epaules",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Élévation latérale avec résistance élastique sous les pieds.",
+      "instructions": "Élastique sous les pieds, lever les bras sur les côtés jusqu'à hauteur d'épaule."
+    },
+    {
+      "nom": "Développé militaire élastique",
+      "groupeMusculaire": "epaules",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Poussée verticale avec résistance élastique.",
+      "instructions": "Élastique sous les pieds, pousser les mains au-dessus de la tête puis redescendre en contrôlant."
+    },
+    {
+      "nom": "Pompes pike",
+      "groupeMusculaire": "epaules",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompe en position pike pour cibler davantage les épaules.",
+      "instructions": "Hanches hautes formant un V inversé, plier les coudes pour amener le sommet du crâne vers le sol puis pousser."
+    },
+    {
+      "nom": "Handstand hold contre un mur",
+      "groupeMusculaire": "epaules",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 7,
+      "valeurDefautDuree": 20,
+      "description": "Maintien en équilibre sur les mains, pieds contre un mur.",
+      "instructions": "Monter en équilibre sur les mains avec les pieds en appui contre le mur, gainer le corps et tenir la position."
+    },
+    {
+      "nom": "Arnold press haltères",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Développé avec rotation des poignets pour solliciter tout le deltoïde.",
+      "instructions": "Démarrer paumes vers soi, pousser en tournant les poignets vers l'extérieur jusqu'à bras tendus."
+    },
+    {
+      "nom": "Traction d'épaule kettlebell",
+      "groupeMusculaire": "epaules",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Tirage vertical d'une kettlebell jusqu'au menton.",
+      "instructions": "Tirer la kettlebell le long du corps jusqu'à hauteur du menton, coudes vers l'extérieur, puis redescendre."
+    },
+    {
+      "nom": "Rotation d'épaule kettlebell",
+      "groupeMusculaire": "epaules",
+      "materiel": ["kettlebell"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Passage de la kettlebell d'une main à l'autre autour du corps.",
+      "instructions": "Faire circuler la kettlebell autour de la taille en la passant d'une main à l'autre."
+    },
+    {
+      "nom": "Face pull élastique",
+      "groupeMusculaire": "epaules",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Tirage vers le visage pour renforcer l'arrière des épaules.",
+      "instructions": "Élastique fixé devant à hauteur de visage, tirer les mains vers le visage en écartant les coudes."
+    },
+    {
+      "nom": "Élévation en Y haltères légers",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Élévation des bras en formant un Y pour cibler l'ensemble du deltoïde.",
+      "instructions": "Buste légèrement penché, lever les bras en diagonale vers le haut en formant un Y, puis redescendre."
+    },
+    {
+      "nom": "Cercles de bras",
+      "groupeMusculaire": "epaules",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Rotation des bras tendus pour échauffer et endurer les épaules.",
+      "instructions": "Bras tendus sur les côtés, effectuer de petits cercles réguliers, puis inverser le sens."
+    },
+    {
+      "nom": "Pompes pike pieds surélevés",
+      "groupeMusculaire": "epaules",
+      "materiel": ["banc"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompe pike avec les pieds posés sur un banc pour plus d'intensité.",
+      "instructions": "Pieds sur le banc, hanches hautes, descendre le sommet du crâne vers le sol puis pousser."
+    },
+    {
+      "nom": "Développé assis haltères",
+      "groupeMusculaire": "epaules",
+      "materiel": ["halteres", "banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Développé épaules assis sur un banc pour plus de stabilité.",
+      "instructions": "Assis, dos droit, pousser les haltères au-dessus de la tête puis redescendre en contrôlant."
+    },
+    {
+      "nom": "Élévation latérale à genoux kettlebell",
+      "groupeMusculaire": "epaules",
+      "materiel": ["kettlebell"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Élévation latérale à genoux pour isoler davantage l'épaule.",
+      "instructions": "À genoux, lever la kettlebell sur le côté jusqu'à hauteur d'épaule puis redescendre lentement."
+    },
+    {
+      "nom": "Rotation d'épaule mobilité tapis",
+      "groupeMusculaire": "epaules",
+      "materiel": ["tapis"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Mobilité douce des épaules au sol.",
+      "instructions": "Allongé sur le tapis, bras tendu, faire décrire de grands cercles lents au-dessus du corps."
+    },
+    {
+      "nom": "Shoulder taps",
+      "groupeMusculaire": "epaules",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Touché d'épaule alterné en position de planche.",
+      "instructions": "En planche haute, toucher l'épaule opposée avec la main en gardant le bassin stable, puis alterner."
+    },
+
     {
       "nom": "Curl biceps haltères",
       "groupeMusculaire": "bras",
       "materiel": ["halteres"],
       "niveau": "debutant",
-      "type": "repetitions",
-      "valeurDefaut": 12,
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
       "description": "Flexion des avant-bras avec haltères.",
       "instructions": "Coudes fixes le long du corps, remonter les haltères en contractant les biceps."
     },
+    {
+      "nom": "Curl marteau haltères",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Curl prise neutre pour cibler biceps et avant-bras.",
+      "instructions": "Paumes face à face, remonter les haltères sans tourner les poignets."
+    },
+    {
+      "nom": "Extension triceps haltère au-dessus de la tête",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension des bras au-dessus de la tête pour cibler les triceps.",
+      "instructions": "Haltère tenu à deux mains derrière la tête, tendre les bras vers le haut puis redescendre en contrôlant."
+    },
+    {
+      "nom": "Kickback triceps haltère",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension du bras vers l'arrière, buste penché.",
+      "instructions": "Buste penché, coude fixe à l'horizontale, tendre l'avant-bras vers l'arrière puis revenir."
+    },
+    {
+      "nom": "Dips triceps sur banc",
+      "groupeMusculaire": "bras",
+      "materiel": ["banc"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Flexion des bras en appui dorsal pour cibler les triceps.",
+      "instructions": "Mains sur le bord du banc, descendre les hanches en pliant les coudes vers l'arrière puis remonter."
+    },
+    {
+      "nom": "Pompes triceps mains rapprochées",
+      "groupeMusculaire": "bras",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompe mains rapprochées, coudes proches du corps.",
+      "instructions": "Mains sous la poitrine, coudes rasant le corps en descendant pour solliciter les triceps."
+    },
+    {
+      "nom": "Curl biceps élastique",
+      "groupeMusculaire": "bras",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Curl biceps avec bande de résistance sous les pieds.",
+      "instructions": "Élastique sous les pieds, coudes fixes, remonter les mains vers les épaules."
+    },
+    {
+      "nom": "Extension triceps élastique",
+      "groupeMusculaire": "bras",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Extension des triceps avec élastique fixé en hauteur.",
+      "instructions": "Élastique fixé au-dessus, coudes fixes près de la tête, tendre les bras vers le bas."
+    },
+    {
+      "nom": "Curl biceps concentré haltère",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Curl unilatéral, coude appuyé sur la cuisse.",
+      "instructions": "Assis, coude appuyé sur l'intérieur de la cuisse, remonter l'haltère en contractant le biceps."
+    },
+    {
+      "nom": "Curl biceps kettlebell",
+      "groupeMusculaire": "bras",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Curl biceps réalisé avec une kettlebell.",
+      "instructions": "Coudes fixes le long du corps, remonter la kettlebell en contractant les biceps."
+    },
+    {
+      "nom": "Extension triceps kettlebell",
+      "groupeMusculaire": "bras",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension des triceps au-dessus de la tête avec une kettlebell.",
+      "instructions": "Kettlebell tenue à deux mains derrière la tête, tendre les bras vers le haut puis redescendre."
+    },
+    {
+      "nom": "Curl marteau élastique",
+      "groupeMusculaire": "bras",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Curl prise neutre avec élastique.",
+      "instructions": "Élastique sous les pieds, paumes face à face, remonter les mains vers les épaules."
+    },
+    {
+      "nom": "Extension triceps au sol",
+      "groupeMusculaire": "bras",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pompe mains rapprochées ciblant particulièrement les triceps.",
+      "instructions": "Mains jointes sous la poitrine, descendre en gardant les coudes proches du corps puis pousser."
+    },
+    {
+      "nom": "Curl 21 haltères",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 21,
+      "valeurDefautDuree": 63,
+      "description": "Curl en trois portions de mouvement pour épuiser le biceps.",
+      "instructions": "7 répétitions en bas de mouvement, 7 en haut, puis 7 en amplitude complète, sans pause."
+    },
+    {
+      "nom": "Planche bras tendus",
+      "groupeMusculaire": "bras",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 7,
+      "valeurDefautDuree": 20,
+      "description": "Gainage isométrique en appui sur les mains, bras tendus.",
+      "instructions": "En planche haute, bras tendus, corps aligné, maintenir la position sans creuser le dos."
+    },
+    {
+      "nom": "Curl biceps alterné haltères",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Curl biceps en alternant un bras après l'autre.",
+      "instructions": "Coudes fixes, remonter un haltère puis l'autre en alternant à chaque répétition."
+    },
+    {
+      "nom": "Kickback triceps élastique",
+      "groupeMusculaire": "bras",
+      "materiel": ["elastique"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Extension du bras vers l'arrière avec élastique.",
+      "instructions": "Élastique fixé derrière, buste penché, tendre l'avant-bras vers l'arrière puis revenir."
+    },
+    {
+      "nom": "Curl biceps prise large haltères",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Curl biceps mains plus écartées que la largeur des épaules.",
+      "instructions": "Bras légèrement écartés du corps, remonter les haltères en contractant les biceps."
+    },
+    {
+      "nom": "Extension triceps sur banc",
+      "groupeMusculaire": "bras",
+      "materiel": ["banc"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Dips triceps avec les pieds surélevés pour plus d'intensité.",
+      "instructions": "Mains sur le bord du banc, pieds surélevés sur un autre appui, descendre les hanches en pliant les coudes."
+    },
+    {
+      "nom": "Rotation de poignet haltère léger",
+      "groupeMusculaire": "bras",
+      "materiel": ["halteres"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Mobilité et renforcement des avant-bras.",
+      "instructions": "Avant-bras posé sur la cuisse, faire rouler le poignet de haut en bas avec un haltère léger."
+    },
+
+    {
+      "nom": "Crunch classique",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Flexion du buste au sol pour cibler le haut des abdominaux.",
+      "instructions": "Allongé sur le dos, genoux pliés, pieds au sol, mains derrière la tête. Décoller les omoplates du sol en contractant le ventre, sans tirer sur la nuque."
+    },
+    {
+      "nom": "Crunch inversé",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Flexion du bassin pour cibler le bas des abdominaux.",
+      "instructions": "Allongé sur le dos, jambes à 90°. Décoller légèrement le bassin du sol en ramenant les genoux vers la poitrine, contrôler la descente."
+    },
+    {
+      "nom": "Bicycle crunch",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Crunch dynamique en pédalage pour cibler grand droit et obliques.",
+      "instructions": "Allongé, mains derrière la tête, jambes en pédalage. Amener le coude vers le genou opposé en alternant de façon fluide."
+    },
+    {
+      "nom": "Gainage planche",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Gainage statique en appui sur les avant-bras.",
+      "instructions": "Corps aligné de la tête aux pieds, abdominaux contractés."
+    },
+    {
+      "nom": "Gainage latéral droit",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 7,
+      "valeurDefautDuree": 20,
+      "description": "Gainage statique en appui latéral pour cibler les obliques.",
+      "instructions": "Appui sur l'avant-bras droit et le bord du pied droit, corps aligné, hanche décollée du sol, bras gauche tendu vers le ciel."
+    },
+    {
+      "nom": "Relevé de jambes",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Levée de jambes tendues pour cibler le bas des abdominaux.",
+      "instructions": "Allongé sur le dos, jambes tendues et jointes. Monter les jambes à 90° puis redescendre lentement sans toucher le sol."
+    },
+    {
+      "nom": "Superman",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension dorsale au sol pour renforcer le bas du dos et les fessiers.",
+      "instructions": "Allongé sur le ventre, bras tendus devant. Soulever simultanément bras, poitrine et jambes, tenir puis relâcher."
+    },
+    {
+      "nom": "Flutter kicks",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Battements de jambes pour cibler le bas des abdominaux.",
+      "instructions": "Allongé sur le dos, bas du dos plaqué au sol, jambes tendues légèrement décollées. Battements alternés rapides façon crawl."
+    },
+    {
+      "nom": "Russian twist (sans poids)",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Rotation du buste assise pour cibler les obliques.",
+      "instructions": "Assis, buste légèrement penché en arrière, pieds décollés ou au sol, mains jointes devant soi. Tourner le buste de gauche à droite."
+    },
+    {
+      "nom": "Toe touches",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Flexion du buste jambes tendues vers le plafond.",
+      "instructions": "Allongé sur le dos, jambes tendues vers le plafond. Monter le buste pour tenter de toucher les pieds avec les mains."
+    },
+    {
+      "nom": "Hollow hold",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 25,
+      "description": "Gainage creux statique pour un gainage complet avancé.",
+      "instructions": "Allongé sur le dos, bras tendus derrière la tête, jambes tendues, épaules et jambes légèrement décollées du sol en formant un creux."
+    },
+    {
+      "nom": "V-up",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Pliage complet du corps en V pour un gainage dynamique avancé.",
+      "instructions": "Allongé sur le dos, bras et jambes tendus. Se plier en V en amenant simultanément le buste et les jambes vers le haut, mains vers les pieds."
+    },
+    {
+      "nom": "Dead bug",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Mouvement croisé lent et contrôlé pour la stabilité du tronc.",
+      "instructions": "Allongé sur le dos, bras tendus vers le plafond, genoux à 90°. Étendre un bras et la jambe opposée vers le sol sans le toucher, en alternant."
+    },
+    {
+      "nom": "Bird dog",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Extension croisée à quatre pattes pour la stabilité du tronc.",
+      "instructions": "En quadrupédie, tendre simultanément un bras et la jambe opposée, en gardant le dos stable et le regard vers le sol."
+    },
+    {
+      "nom": "Mountain climber croisé",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Variante croisée du mountain climber pour cibler les obliques.",
+      "instructions": "En planche haute, amener le genou vers le coude opposé (diagonale) en alternant rapidement."
+    },
+    {
+      "nom": "High knees",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Montées de genoux rapides, cardio et gainage combinés.",
+      "instructions": "Sur place, monter rapidement les genoux à hauteur de hanche en alternant, façon course rapide sur place."
+    },
+    {
+      "nom": "Plank jacks",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 25,
+      "description": "Planche dynamique avec écartement des jambes en sautillant.",
+      "instructions": "En position de planche haute, écarter et resserrer les jambes en sautillant, comme un jumping jack horizontal."
+    },
+    {
+      "nom": "Standing oblique crunch (debout)",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Crunch oblique debout, sans impact au sol.",
+      "instructions": "Debout, mains derrière la tête. Amener le genou vers le coude opposé en contractant les obliques, en alternant les côtés."
+    },
+    {
+      "nom": "Planche inversée (reverse plank)",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 7,
+      "valeurDefautDuree": 20,
+      "description": "Gainage statique face au plafond pour le bas du dos et les abdominaux.",
+      "instructions": "Assis, mains derrière les hanches, jambes tendues. Pousser le bassin vers le haut pour aligner le corps face au plafond."
+    },
+    {
+      "nom": "Plank walkout",
+      "groupeMusculaire": "abdominaux",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Enchaînement dynamique de la position debout à la planche.",
+      "instructions": "Debout, plier le buste et marcher avec les mains jusqu'à la planche haute, tenir un instant, puis remonter en marchant vers les pieds."
+    },
+
     {
       "nom": "Mountain climbers",
       "groupeMusculaire": "cardio",
       "materiel": [],
       "niveau": "intermediaire",
-      "type": "duree",
-      "valeurDefaut": 40,
+      "valeurDefautRepetitions": 13,
+      "valeurDefautDuree": 40,
       "description": "Exercice cardio en position de planche.",
       "instructions": "Ramener alternativement les genoux vers la poitrine en position de planche haute, rythme soutenu."
     },
+    {
+      "nom": "Jumping jacks",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Sauts en écartant bras et jambes, exercice cardio classique.",
+      "instructions": "Sauter en écartant les jambes et en levant les bras au-dessus de la tête, puis revenir en position de départ."
+    },
+    {
+      "nom": "Squat jump",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Squat avec saut vertical pour un effort cardio intense.",
+      "instructions": "Descendre en squat puis sauter le plus haut possible, amortir la réception en repartant en squat."
+    },
+    {
+      "nom": "Sprint sur place",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Course rapide sur place à intensité maximale.",
+      "instructions": "Genoux hauts, bras actifs, courir sur place le plus rapidement possible."
+    },
+    {
+      "nom": "Corde à sauter imaginaire",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Simulation de saut à la corde sans corde.",
+      "instructions": "Petits sauts réguliers sur la pointe des pieds en mimant la rotation d'une corde avec les poignets."
+    },
+    {
+      "nom": "Skater jumps",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Sauts latéraux façon patineur pour le cardio et les jambes.",
+      "instructions": "Sauter latéralement d'une jambe sur l'autre en passant la jambe libre derrière, façon fente sautée latérale."
+    },
+    {
+      "nom": "Star jumps",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Saut en écartant bras et jambes façon étoile.",
+      "instructions": "Depuis un squat, sauter en écartant complètement bras et jambes en l'air, puis revenir en squat."
+    },
+    {
+      "nom": "Tuck jumps",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Saut vertical en ramenant les genoux vers la poitrine.",
+      "instructions": "Sauter le plus haut possible en ramenant les genoux vers la poitrine, réceptionner en amortissant."
+    },
+    {
+      "nom": "Shadow boxing",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Boxe sur place sans adversaire pour un cardio dynamique.",
+      "instructions": "Enchaîner des coups de poing dans le vide en gardant les jambes actives et le buste mobile."
+    },
+    {
+      "nom": "Step touch cardio",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Pas chassés latéraux à rythme modéré.",
+      "instructions": "Faire un pas sur le côté puis ramener l'autre pied, en balançant les bras, et alterner de côté."
+    },
+    {
+      "nom": "Burpee sans pompe",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Version simplifiée du burpee, sans la phase de pompe.",
+      "instructions": "Squat, poser les mains au sol, sauter les pieds en arrière en planche, revenir puis sauter vers le haut."
+    },
+    {
+      "nom": "Squat jump sumo",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Squat jump pieds très écartés pour cibler aussi l'intérieur des cuisses.",
+      "instructions": "Pieds bien écartés, descendre en squat sumo puis sauter verticalement, amortir la réception."
+    },
+    {
+      "nom": "Fast feet",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Petits pas très rapides sur place.",
+      "instructions": "Genoux légèrement fléchis, taper les pieds au sol le plus rapidement possible sur une petite amplitude."
+    },
+    {
+      "nom": "Broad jump sur place",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Saut horizontal en longueur suivi d'un retour en marchant.",
+      "instructions": "Sauter le plus loin possible vers l'avant depuis un squat, amortir la réception puis revenir en marchant."
+    },
+    {
+      "nom": "Battle rope imaginaire",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Simulation de corde ondulatoire pour un cardio des bras et du tronc.",
+      "instructions": "Jambes fléchies, bras alternés vers le haut et le bas rapidement comme pour agiter une corde lourde."
+    },
+    {
+      "nom": "Jump rope avec corde",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 20,
+      "valeurDefautDuree": 60,
+      "description": "Saut à la corde classique.",
+      "instructions": "Poignets actifs, petits sauts réguliers sur la pointe des pieds en faisant tourner la corde."
+    },
+    {
+      "nom": "Bear crawl",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Déplacement en quadrupédie, genoux décollés du sol.",
+      "instructions": "En quadrupédie, genoux légèrement décollés du sol, avancer en déplaçant bras et jambes opposés."
+    },
+    {
+      "nom": "High plank to squat jump",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Enchaînement planche puis saut en squat.",
+      "instructions": "Depuis la planche haute, ramener les pieds vers les mains puis sauter verticalement, revenir en planche."
+    },
+    {
+      "nom": "Side shuffle",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Déplacement latéral rapide en pas chassés.",
+      "instructions": "En légère flexion de jambes, se déplacer rapidement sur le côté par petits pas chassés, puis revenir."
+    },
+    {
+      "nom": "Sprint intervals sur place",
+      "groupeMusculaire": "cardio",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Alternance de sprints courts et intenses sur place.",
+      "instructions": "Courir sur place à intensité maximale par courtes salves, en gardant les genoux hauts."
+    },
+
     {
       "nom": "Swing kettlebell",
       "groupeMusculaire": "full-body",
       "materiel": ["kettlebell"],
       "niveau": "avance",
-      "type": "repetitions",
-      "valeurDefaut": 15,
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
       "description": "Mouvement de hanche explosif avec kettlebell.",
       "instructions": "Dos plat, propulser la kettlebell avec les hanches, pas avec les bras."
     },
@@ -95,10 +1422,190 @@
       "groupeMusculaire": "full-body",
       "materiel": [],
       "niveau": "avance",
-      "type": "repetitions",
-      "valeurDefaut": 10,
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
       "description": "Enchaînement complet cardio + renforcement.",
       "instructions": "Squat, planche, pompe, saut groupé, saut vertical — enchaîner sans pause."
+    },
+    {
+      "nom": "Clean and press haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Épaulé-poussé complet avec haltères.",
+      "instructions": "Amener les haltères des cuisses aux épaules en un mouvement fluide, puis pousser au-dessus de la tête."
+    },
+    {
+      "nom": "Thruster haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Squat suivi d'un développé, enchaînés en un seul mouvement.",
+      "instructions": "Descendre en squat avec les haltères aux épaules, puis pousser les haltères au-dessus de la tête en se relevant."
+    },
+    {
+      "nom": "Renegade row haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Rowing en position de planche, un bras après l'autre.",
+      "instructions": "En planche haute sur deux haltères, tirer un haltère vers la hanche en gardant le bassin stable, puis alterner."
+    },
+    {
+      "nom": "Turkish get-up kettlebell",
+      "groupeMusculaire": "full-body",
+      "materiel": ["kettlebell"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 6,
+      "valeurDefautDuree": 18,
+      "description": "Passage contrôlé de la position allongée à debout, kettlebell tendue au-dessus de la tête.",
+      "instructions": "Kettlebell tendue au-dessus de la tête, se relever progressivement en passant par l'appui sur le coude puis la main, jusqu'à debout."
+    },
+    {
+      "nom": "Man maker haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 24,
+      "description": "Enchaînement pompe, rowing et développé avec haltères.",
+      "instructions": "En planche sur les haltères, faire une pompe, un rowing de chaque bras, puis se relever et pousser les haltères au-dessus de la tête."
+    },
+    {
+      "nom": "Squat to press haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Squat suivi d'un développé épaules avec haltères.",
+      "instructions": "Descendre en squat avec les haltères aux épaules, se relever puis pousser les haltères au-dessus de la tête."
+    },
+    {
+      "nom": "Deadlift kettlebell",
+      "groupeMusculaire": "full-body",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Soulevé de terre avec une kettlebell entre les pieds.",
+      "instructions": "Hanches en arrière, dos plat, saisir la kettlebell et se redresser en poussant sur les jambes."
+    },
+    {
+      "nom": "Bear crawl to push-up",
+      "groupeMusculaire": "full-body",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Déplacement en quadrupédie suivi d'une pompe.",
+      "instructions": "Avancer en bear crawl sur quelques pas puis effectuer une pompe, répéter l'enchaînement."
+    },
+    {
+      "nom": "Squat + press au poids du corps",
+      "groupeMusculaire": "full-body",
+      "materiel": [],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Squat suivi d'une extension des bras vers le haut, façon lancer de médecine-ball.",
+      "instructions": "Descendre en squat, mains devant la poitrine, se relever en tendant les bras vers le haut comme pour lancer un ballon."
+    },
+    {
+      "nom": "Devil press haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 24,
+      "description": "Burpee avec haltères suivi d'un développé au-dessus de la tête.",
+      "instructions": "Pompe avec les mains sur les haltères, se relever en sautant puis pousser les haltères au-dessus de la tête."
+    },
+    {
+      "nom": "Kettlebell clean",
+      "groupeMusculaire": "full-body",
+      "materiel": ["kettlebell"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Amené de la kettlebell du sol à hauteur d'épaule.",
+      "instructions": "Tirer la kettlebell du sol jusqu'à l'épaule en un mouvement fluide, coude proche du corps à la réception."
+    },
+    {
+      "nom": "Marche chargée kettlebell",
+      "groupeMusculaire": "full-body",
+      "materiel": ["kettlebell"],
+      "niveau": "debutant",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Marche en tenant une charge pour renforcer la posture et la préhension.",
+      "instructions": "Kettlebell tenue d'un côté ou des deux, marcher en gardant le buste droit et les épaules stables."
+    },
+    {
+      "nom": "Squat avec rotation élastique",
+      "groupeMusculaire": "full-body",
+      "materiel": ["elastique"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Squat combiné à une rotation du buste avec élastique.",
+      "instructions": "Élastique tenu à deux mains, descendre en squat puis se relever en tournant le buste d'un côté."
+    },
+    {
+      "nom": "Circuit pompe-squat-planche",
+      "groupeMusculaire": "full-body",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 15,
+      "valeurDefautDuree": 45,
+      "description": "Enchaînement de trois mouvements complets sans pause.",
+      "instructions": "Enchaîner une pompe, un squat et un maintien de planche courte, puis répéter la séquence."
+    },
+    {
+      "nom": "Kettlebell figure 8",
+      "groupeMusculaire": "full-body",
+      "materiel": ["kettlebell"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Passage de la kettlebell entre les jambes en forme de huit.",
+      "instructions": "Jambes fléchies, faire passer la kettlebell d'une main à l'autre entre les jambes en dessinant un huit."
+    },
+    {
+      "nom": "Fentes avec rotation haltères",
+      "groupeMusculaire": "full-body",
+      "materiel": ["halteres"],
+      "niveau": "intermediaire",
+      "valeurDefautRepetitions": 12,
+      "valeurDefautDuree": 36,
+      "description": "Fente combinée à une rotation du buste avec haltère.",
+      "instructions": "Haltère tenu à deux mains, descendre en fente avant en tournant le buste vers la jambe avancée."
+    },
+    {
+      "nom": "Burpee avec traction sur banc",
+      "groupeMusculaire": "full-body",
+      "materiel": ["banc"],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 8,
+      "valeurDefautDuree": 24,
+      "description": "Burpee complété par une traction en appui sur un banc.",
+      "instructions": "Effectuer un burpee classique puis, en fin de mouvement, tirer le buste vers un banc en tirage horizontal."
+    },
+    {
+      "nom": "Mountain climber + pompe enchaînés",
+      "groupeMusculaire": "full-body",
+      "materiel": [],
+      "niveau": "avance",
+      "valeurDefautRepetitions": 10,
+      "valeurDefautDuree": 30,
+      "description": "Enchaînement cardio et renforcement du haut du corps.",
+      "instructions": "Alterner quelques mountain climbers puis une pompe, sans pause entre les deux mouvements."
     }
   ]
 }

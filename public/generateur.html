@@ -48,6 +48,32 @@
         </select>
       </div>
 
+      <div class="champ">
+        <label for="repos-exercices">Repos entre exercices</label>
+        <select id="repos-exercices" class="input">
+          <option value="15">15 secondes</option>
+          <option value="30">30 secondes</option>
+          <option value="60" selected>60 secondes</option>
+          <option value="90">90 secondes</option>
+          <option value="120">120 secondes</option>
+        </select>
+      </div>
+
+      <div class="champ" id="champ-preference-type">
+        <label>Préférence répétitions / durée</label>
+        <div class="grille-choix" id="choix-preference-type">
+          <button type="button" class="choix actif" data-valeur="repetitions">Répétitions</button>
+          <button type="button" class="choix" data-valeur="duree">Durée</button>
+        </div>
+      </div>
+
+      <div class="champ">
+        <label style="display:inline-flex; align-items:center; gap:8px; text-transform:none">
+          <input type="checkbox" id="enchainement-auto">
+          Enchaînement automatique <span style="color:var(--texte-dim)">(tout en durée)</span>
+        </label>
+      </div>
+
       <button id="btn-generer" class="btn-primaire btn-large">⚡ Générer ma séance</button>
       <p id="msg-formulaire" class="msg msg-erreur hidden"></p>
     </div>
@@ -56,6 +82,14 @@
       <p class="carte-titre">Ta séance</p>
       <p class="carte-desc" id="resume-seance"></p>
       <div id="liste-blocs"></div>
+      <div class="champ" style="display:flex; gap:8px; align-items:end">
+        <select id="select-ajout-exercice" class="input" style="flex:1"></select>
+        <button id="btn-ajouter-exercice" class="btn-secondaire" type="button">➕ Ajouter</button>
+      </div>
+      <div class="champ">
+        <label for="nom-seance">Nom de la séance (optionnel)</label>
+        <input type="text" id="nom-seance" class="input" placeholder="Ex: Séance jambes du lundi">
+      </div>
       <div style="display:flex; gap:10px; margin-top:12px">
         <button id="btn-enregistrer" class="btn-primaire" style="flex:1">💾 Enregistrer</button>
         <button id="btn-regenerer" class="btn-secondaire" style="flex:1">🔄 Une autre</button>
@@ -67,10 +101,10 @@
   <script type="module">
     import { ExerciceService } from './services/ExerciceService.js';
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
-    import { genererSeance } from './utils/GenerateurSeance.js';
+    import { genererSeance, calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE, REPOS_ENTRE_SERIES } from './utils/GenerateurSeance.js';
     import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+    import { MATERIEL_DISPONIBLE } from './utils/constantes.js';
 
-    const MATERIEL_DISPONIBLE = ['halteres', 'tapis', 'banc', 'elastique', 'kettlebell'];
     const LIBELLES = {
       jambes: 'Jambes', dos: 'Dos', pectoraux: 'Pectoraux', epaules: 'Épaules',
       bras: 'Bras', abdominaux: 'Abdominaux', cardio: 'Cardio', 'full-body': 'Full-body',
@@ -98,6 +132,27 @@
       return [...conteneur.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur);
     }
 
+    // Choix exclusif (un seul actif à la fois), contrairement aux groupes/matériel
+    // qui sont multi-sélection.
+    function creerChoixUnique(conteneur, defaut) {
+      conteneur.querySelectorAll('.choix').forEach(el => {
+        el.classList.toggle('actif', el.dataset.valeur === defaut);
+        el.addEventListener('click', () => {
+          conteneur.querySelectorAll('.choix').forEach(b => b.classList.remove('actif'));
+          el.classList.add('actif');
+        });
+      });
+    }
+
+    const choixPreferenceType = document.getElementById('choix-preference-type');
+    const champPreferenceType = document.getElementById('champ-preference-type');
+    const checkboxEnchainement = document.getElementById('enchainement-auto');
+    creerChoixUnique(choixPreferenceType, 'repetitions');
+
+    checkboxEnchainement.addEventListener('change', () => {
+      champPreferenceType.classList.toggle('desactive', checkboxEnchainement.checked);
+    });
+
     const btnGenerer      = document.getElementById('btn-generer');
     const msgFormulaire   = document.getElementById('msg-formulaire');
     const carteResultat   = document.getElementById('carte-resultat');
@@ -106,39 +161,101 @@
     const btnEnregistrer  = document.getElementById('btn-enregistrer');
     const btnRegenerer    = document.getElementById('btn-regenerer');
     const msgResultat     = document.getElementById('msg-resultat');
+    const nomSeance       = document.getElementById('nom-seance');
+    const selectAjoutExercice = document.getElementById('select-ajout-exercice');
+    const btnAjouterExercice  = document.getElementById('btn-ajouter-exercice');
 
     let exercices = [];
     let seanceCourante = null;
 
     async function chargerExercices() {
       exercices = await ExerciceService.listerTous();
+      selectAjoutExercice.innerHTML = [...exercices]
+        .sort((a, b) => a.nom.localeCompare(b.nom))
+        .map(ex => `<option value="${ex.id}">${ex.nom}</option>`)
+        .join('');
+    }
+
+    function rafraichirResume() {
+      const n = seanceCourante.blocs.length;
+      resumeSeance.textContent = `${n} exercice${n > 1 ? 's' : ''} · ~${seanceCourante.dureeEstimeeMinutes} min`;
     }
 
     function afficherSeance(seance) {
       seanceCourante = seance;
-      resumeSeance.textContent =
-        `${seance.blocs.length} exercice${seance.blocs.length > 1 ? 's' : ''} · ~${seance.dureeEstimeeMinutes} min`;
-
-      listeBlocs.innerHTML = '';
-      seance.blocs.forEach((bloc, i) => {
-        const valeurTexte = bloc.type === 'duree' ? `${bloc.valeur} s` : `${bloc.valeur} reps`;
-        const div = document.createElement('div');
-        div.className = 'bloc-exercice';
-        div.innerHTML = `
-          <div class="bloc-num">${i + 1}</div>
-          <div class="bloc-info">
-            <div class="bloc-nom">${bloc.exercice.nom}</div>
-            <div class="bloc-detail">${bloc.series} séries × ${valeurTexte} — repos ${bloc.reposSecondes}s</div>
-          </div>
-        `;
-        listeBlocs.appendChild(div);
-      });
+      nomSeance.value = '';
+      rafraichirBlocs();
 
       carteResultat.classList.remove('hidden');
       msgResultat.classList.add('hidden');
       btnEnregistrer.disabled = false;
       btnEnregistrer.textContent = '💾 Enregistrer';
     }
+
+    function rafraichirBlocs() {
+      rafraichirResume();
+
+      listeBlocs.innerHTML = '';
+      seanceCourante.blocs.forEach((bloc, i) => {
+        const unite = bloc.type === 'duree' ? 's' : 'reps';
+        const div = document.createElement('div');
+        div.className = 'bloc-exercice';
+        div.innerHTML = `
+          <div class="bloc-num">${i + 1}</div>
+          <div class="bloc-info">
+            <div class="bloc-nom">${bloc.exercice.nom}</div>
+            <div class="bloc-detail">
+              <input type="number" min="1" class="input input-bloc" data-index="${i}" data-champ="series" value="${bloc.series}"> séries ×
+              <input type="number" min="1" class="input input-bloc" data-index="${i}" data-champ="valeur" value="${bloc.valeur}">
+              ${unite} — repos ${bloc.reposApresSecondes}s entre exercices
+            </div>
+          </div>
+          <button class="btn-danger btn-suppr-bloc" type="button" data-index="${i}">🗑</button>
+        `;
+        listeBlocs.appendChild(div);
+      });
+    }
+
+    listeBlocs.addEventListener('input', e => {
+      const input = e.target;
+      if (!input.classList.contains('input-bloc')) return;
+      const index = parseInt(input.dataset.index, 10);
+      const valeur = Math.max(1, parseInt(input.value, 10) || 1);
+      seanceCourante.blocs[index][input.dataset.champ] = valeur;
+      seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
+      rafraichirResume();
+    });
+
+    listeBlocs.addEventListener('click', e => {
+      const bouton = e.target.closest('.btn-suppr-bloc');
+      if (!bouton) return;
+      const index = parseInt(bouton.dataset.index, 10);
+      seanceCourante.blocs.splice(index, 1);
+      seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
+      rafraichirBlocs();
+    });
+
+    btnAjouterExercice.addEventListener('click', () => {
+      if (!seanceCourante || !selectAjoutExercice.value) return;
+      const exercice = exercices.find(ex => ex.id === selectAjoutExercice.value);
+      if (!exercice) return;
+
+      const type = checkboxEnchainement.checked
+        ? 'duree'
+        : (choixPreferenceType.querySelector('.choix.actif')?.dataset.valeur || 'repetitions');
+      const reposApresSecondes = parseInt(document.getElementById('repos-exercices').value, 10);
+
+      seanceCourante.blocs.push({
+        exercice,
+        series: SERIES_PAR_EXERCICE,
+        valeur: type === 'duree' ? exercice.valeurDefautDuree : exercice.valeurDefautRepetitions,
+        type,
+        reposSecondes: REPOS_ENTRE_SERIES,
+        reposApresSecondes
+      });
+      seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
+      rafraichirBlocs();
+    });
 
     async function genererEtAfficher() {
       msgFormulaire.classList.add('hidden');
@@ -152,7 +269,10 @@
         dureeMinutes: parseInt(document.getElementById('duree').value, 10),
         groupesMusculaires: valeursActives(choixGroupes),
         materielDisponible: valeursActives(choixMateriel),
-        niveau: document.getElementById('niveau').value
+        niveau: document.getElementById('niveau').value,
+        reposEntreExercicesSecondes: parseInt(document.getElementById('repos-exercices').value, 10),
+        preferenceType: choixPreferenceType.querySelector('.choix.actif')?.dataset.valeur || 'repetitions',
+        enchainementAutomatique: checkboxEnchainement.checked
       };
 
       try {
@@ -171,6 +291,7 @@
       if (!seanceCourante) return;
       btnEnregistrer.disabled = true;
       try {
+        seanceCourante.nom = nomSeance.value.trim() || null;
         await HistoriqueSeanceService.ajouter(seanceCourante);
         msgResultat.textContent = '✅ Séance enregistrée dans ton historique.';
         msgResultat.className = 'msg msg-ok';

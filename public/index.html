@@ -35,10 +35,16 @@
     </div>
 
     <p id="msg-connecte" class="msg msg-ok hidden"></p>
+
+    <p id="lien-deconnexion" class="hidden" style="text-align:center">
+      <a href="#" id="btn-deconnexion">Se déconnecter</a>
+    </p>
   </main>
 
   <script type="module">
     import { AuthService } from './services/AuthService.js';
+
+    const lienDeconnexion = document.getElementById('lien-deconnexion');
 
     AuthService.ecouterAuth(user => {
       const titre = document.getElementById('lien-compte-titre');
@@ -46,10 +52,17 @@
       if (user) {
         titre.textContent = user.displayName || 'Mon compte';
         lien.href = 'historique.html';
+        lienDeconnexion.classList.remove('hidden');
       } else {
         titre.textContent = 'Connexion';
         lien.href = 'login.html';
+        lienDeconnexion.classList.add('hidden');
       }
+    });
+
+    document.getElementById('btn-deconnexion').addEventListener('click', async e => {
+      e.preventDefault();
+      await AuthService.seDeconnecter();
     });
   </script>
 

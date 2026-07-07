@@ -18,7 +18,8 @@
   <main>
     <div class="carte">
       <p class="carte-titre">📚 Bibliothèque d'exercices</p>
-      <p class="carte-desc">Importe un fichier JSON (tableau d'exercices ou <code>{ "exercices": [...] }</code>).</p>
+      <p class="carte-desc">Importe un fichier JSON (tableau d'exercices ou <code>{ "exercices": [...] }</code>).
+        Champs requis : <code>nom</code>, <code>groupeMusculaire</code> (valeur valide).</p>
 
       <label for="fichier-exercices" class="btn-primaire">📂 Importer des exercices (.json)</label>
       <input type="file" id="fichier-exercices" accept=".json" class="hidden">
@@ -41,7 +42,7 @@
     import { auth } from './firebase-config.js';
     import { ADMIN_EMAIL } from './auth-config.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
-    import { Exercice } from './models/Exercice.js';
+    import { Exercice, GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { ExerciceService } from './services/ExerciceService.js';
 
     const btnLogout = document.getElementById('btn-logout');
@@ -85,6 +86,11 @@
 
           let ok = 0, ko = 0;
           for (const item of items) {
+            if (!item.nom || !GROUPES_MUSCULAIRES.includes(item.groupeMusculaire)) {
+              ko++;
+              console.warn('Exercice ignoré (nom ou groupeMusculaire invalide) :', item);
+              continue;
+            }
             try {
               await ExerciceService.creer(new Exercice(item));
               ok++;

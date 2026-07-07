@@ -1,3 +1,5 @@
+import { SECONDES_PAR_REPETITION } from '../utils/constantes.js';
+
 export const GROUPES_MUSCULAIRES = [
   'jambes', 'dos', 'pectoraux', 'epaules', 'bras', 'abdominaux', 'cardio', 'full-body'
 ];
@@ -11,8 +13,8 @@ export class Exercice {
     groupeMusculaire,
     materiel = [],
     niveau = 'debutant',
-    type = 'repetitions',   // 'repetitions' | 'duree'
-    valeurDefaut = 10,      // nb de répétitions, ou secondes si type === 'duree'
+    valeurDefautRepetitions = 10,
+    valeurDefautDuree = 30,
     description = '',
     instructions = '',
     image = ''
@@ -22,8 +24,8 @@ export class Exercice {
     this.groupeMusculaire = groupeMusculaire;
     this.materiel = materiel;
     this.niveau = niveau;
-    this.type = type;
-    this.valeurDefaut = valeurDefaut;
+    this.valeurDefautRepetitions = valeurDefautRepetitions;
+    this.valeurDefautDuree = valeurDefautDuree;
     this.description = description;
     this.instructions = instructions;
     this.image = image;
@@ -35,15 +37,31 @@ export class Exercice {
       groupeMusculaire: this.groupeMusculaire,
       materiel: this.materiel,
       niveau: this.niveau,
-      type: this.type,
-      valeurDefaut: this.valeurDefaut,
+      valeurDefautRepetitions: this.valeurDefautRepetitions,
+      valeurDefautDuree: this.valeurDefautDuree,
       description: this.description,
       instructions: this.instructions,
       image: this.image
     };
   }
 
+  // Rétrocompatibilité : les exercices créés avant l'ajout des deux valeurs par
+  // défaut n'ont que l'ancien couple { type, valeurDefaut } — on dérive la
+  // valeur manquante par conversion plutôt que de casser leur affichage.
   static fromFirestore(id, data) {
-    return new Exercice({ id, ...data });
+    let { valeurDefautRepetitions, valeurDefautDuree } = data;
+
+    if (valeurDefautRepetitions === undefined || valeurDefautDuree === undefined) {
+      const valeurLegacy = data.valeurDefaut ?? 10;
+      if (data.type === 'duree') {
+        valeurDefautDuree ??= valeurLegacy;
+        valeurDefautRepetitions ??= Math.round(valeurLegacy / SECONDES_PAR_REPETITION);
+      } else {
+        valeurDefautRepetitions ??= valeurLegacy;
+        valeurDefautDuree ??= Math.round(valeurLegacy * SECONDES_PAR_REPETITION);
+      }
+    }
+
+    return new Exercice({ id, ...data, valeurDefautRepetitions, valeurDefautDuree });
   }
 }

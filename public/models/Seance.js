@@ -5,12 +5,14 @@ export class Seance {
   constructor({
     id = null,
     date = null,
+    nom = null,
     criteres = {},
     blocs = [],
     dureeEstimeeMinutes = 0
   }) {
     this.id = id;
     this.date = date;
+    this.nom = nom;
     this.criteres = criteres;
     this.blocs = blocs;
     this.dureeEstimeeMinutes = dureeEstimeeMinutes;
@@ -19,6 +21,7 @@ export class Seance {
   toFirestore() {
     return {
       date: this.date,
+      nom: this.nom,
       criteres: this.criteres,
       dureeEstimeeMinutes: this.dureeEstimeeMinutes,
       blocs: this.blocs.map(b => ({
@@ -27,7 +30,8 @@ export class Seance {
         series: b.series,
         valeur: b.valeur,
         type: b.type,
-        reposSecondes: b.reposSecondes
+        reposSecondes: b.reposSecondes,
+        reposApresSecondes: b.reposApresSecondes
       }))
     };
   }
@@ -36,6 +40,7 @@ export class Seance {
     return new Seance({
       id,
       date: data.date,
+      nom: data.nom || null,
       criteres: data.criteres,
       dureeEstimeeMinutes: data.dureeEstimeeMinutes,
       blocs: (data.blocs || []).map(b => ({
@@ -43,7 +48,8 @@ export class Seance {
         series: b.series,
         valeur: b.valeur,
         type: b.type,
-        reposSecondes: b.reposSecondes
+        reposSecondes: b.reposSecondes,
+        reposApresSecondes: b.reposApresSecondes ?? 60
       }))
     });
   }

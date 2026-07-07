@@ -40,35 +40,60 @@
       return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
-    async function charger() {
-      const seances = await HistoriqueSeanceService.lister();
+    let seancesChargees = [];
 
-      if (seances.length === 0) {
+    async function charger() {
+      seancesChargees = await HistoriqueSeanceService.lister();
+
+      if (seancesChargees.length === 0) {
         listeEl.innerHTML = '<p class="vide">Aucune séance enregistrée pour le moment.</p>';
         return;
       }
 
       listeEl.innerHTML = '';
-      seances.forEach(seance => {
+      seancesChargees.forEach(seance => {
         const nomsExercices = seance.blocs.map(b => b.exercice.nom).join(', ');
         const div = document.createElement('div');
         div.className = 'carte';
+        div.dataset.id = seance.id;
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:start; gap:10px">
-            <p class="carte-titre">${formatDate(seance.date)}</p>
+            <p class="carte-titre">${seance.nom || formatDate(seance.date)}</p>
             <span class="badge badge-vert">~${seance.dureeEstimeeMinutes} min</span>
           </div>
-          <p class="carte-desc">${seance.blocs.length} exercice${seance.blocs.length > 1 ? 's' : ''} — ${nomsExercices}</p>
+          <p class="carte-desc">${seance.nom ? formatDate(seance.date) + ' — ' : ''}${seance.blocs.length} exercice${seance.blocs.length > 1 ? 's' : ''} — ${nomsExercices}</p>
+          <div style="display:flex; gap:10px">
+            <button class="btn-primaire btn-lancer" style="flex:1">▶ Lancer</button>
+            <button class="btn-danger btn-suppr-seance">🗑 Supprimer</button>
+          </div>
         `;
         listeEl.appendChild(div);
       });
     }
 
-    AuthService.ecouterAuth(user => {
-      msgAnonyme.classList.toggle('hidden', !!user);
+    listeEl.addEventListener('click', async e => {
+      const id = e.target.closest('.carte')?.dataset.id;
+      if (!id) return;
+
+      if (e.target.closest('.btn-lancer')) {
+        const seance = seancesChargees.find(s => s.id === id);
+        if (!seance) return;
+        sessionStorage.setItem('hf_execution_seance', JSON.stringify(seance));
+        window.location.href = 'execution.html';
+        return;
+      }
+
+      if (e.target.closest('.btn-suppr-seance')) {
+        if (!confirm('Supprimer cette séance de ton historique ?')) return;
+        await HistoriqueSeanceService.supprimer(id);
+        charger();
+      }
     });
 
-    charger();
+    AuthService.ecouterAuth(user => {
+      msgAnonyme.classList.toggle('hidden', !!user);
+      charger();
+    });
   </script>
 
 </body>

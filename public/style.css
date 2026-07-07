@@ -251,6 +251,10 @@ label {
 .bloc-nom { font-weight: 700; font-size: 0.95rem; }
 .bloc-detail { color: var(--texte-dim); font-size: 0.82rem; margin-top: 2px; }
 
+.input-bloc { width: 56px; display: inline-block; text-align: center; padding: 4px 6px; margin: 0 4px; }
+
+.desactive { opacity: 0.4; pointer-events: none; }
+
 .badge {
   display: inline-block;
   font-size: 0.72rem;
@@ -289,3 +293,72 @@ hr.sep {
   border-top: 1px solid var(--bordure);
   margin: 16px 0;
 }
+
+/* ── Écran d'exécution / minuteur ── */
+.progression-globale {
+  text-align: center;
+  color: var(--texte-dim);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.nom-exercice-courant {
+  text-align: center;
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+}
+
+#badge-phase { display: block; text-align: center; margin: 0 auto 20px; width: fit-content; }
+
+.minuteur-zone { text-align: center; }
+
+.minuteur-anneau {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: conic-gradient(var(--accent) calc(var(--pct, 0) * 1%), var(--bg-elevee) 0);
+  transition: background 0.25s linear;
+}
+
+.minuteur-anneau::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--carte);
+}
+
+.minuteur-chiffre {
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 3.4rem;
+}
+
+.minuteur-legende {
+  color: var(--texte-dim);
+  font-size: 0.85rem;
+  margin-top: -4px;
+}
+
+.zone-manuelle { text-align: center; padding: 40px 0; }
+
+.valeur-cible {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+}
+
+.controles-execution {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.controles-execution button { flex: 1; }

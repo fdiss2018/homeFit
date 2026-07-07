@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit - Exécution de la séance</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>⏱️ En séance</h1>
+    <p id="sous-titre">Chargement...</p>
+  </header>
+
+  <main>
+    <a href="historique.html" class="lien-retour">← Retour</a>
+
+    <div id="ecran-erreur" class="carte hidden">
+      <p class="vide">Aucune séance à lancer. Retourne à l'historique pour en choisir une.</p>
+      <a href="historique.html" class="btn-secondaire btn-large">← Retour à l'historique</a>
+    </div>
+
+    <div id="ecran-execution" class="carte hidden">
+      <p class="progression-globale" id="progression-globale"></p>
+      <h2 class="nom-exercice-courant" id="nom-exercice"></h2>
+      <p class="badge" id="exercice-groupe" style="display:block; text-align:center; margin:0 auto 10px; width:fit-content"></p>
+      <p class="carte-desc" id="exercice-description" style="text-align:center"></p>
+      <p class="carte-desc" id="exercice-instructions" style="text-align:center"></p>
+      <span class="badge" id="badge-phase"></span>
+
+      <div class="minuteur-zone hidden" id="minuteur-zone">
+        <div class="minuteur-anneau" id="minuteur-anneau">
+          <span class="minuteur-chiffre" id="minuteur-chiffre">--</span>
+        </div>
+        <p class="minuteur-legende">secondes</p>
+      </div>
+
+      <div class="zone-manuelle hidden" id="zone-manuelle">
+        <p class="valeur-cible" id="valeur-cible"></p>
+      </div>
+
+      <div class="controles-execution">
+        <button id="btn-pause" class="btn-secondaire">⏸ Pause</button>
+        <button id="btn-action" class="btn-primaire">✅ Série terminée</button>
+      </div>
+    </div>
+
+    <div id="ecran-fin" class="carte hidden">
+      <p class="carte-titre">🎉 Séance terminée !</p>
+      <p class="carte-desc">Bravo, tu as terminé « <span id="fin-nom-seance"></span> ».</p>
+      <a href="historique.html" class="btn-primaire btn-large">Retour à l'historique</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { construireEtapes } from './utils/ExecutionSeance.js';
+    import { ExerciceService } from './services/ExerciceService.js';
+    import { LIBELLES_GROUPES } from './utils/constantes.js';
+
+    const els = {
+      sousTitre: document.getElementById('sous-titre'),
+      erreur: document.getElementById('ecran-erreur'),
+      execution: document.getElementById('ecran-execution'),
+      fin: document.getElementById('ecran-fin'),
+      progression: document.getElementById('progression-globale'),
+      nomExercice: document.getElementById('nom-exercice'),
+      exerciceGroupe: document.getElementById('exercice-groupe'),
+      exerciceDescription: document.getElementById('exercice-description'),
+      exerciceInstructions: document.getElementById('exercice-instructions'),
+      badgePhase: document.getElementById('badge-phase'),
+      minuteurZone: document.getElementById('minuteur-zone'),
+      anneau: document.getElementById('minuteur-anneau'),
+      chiffre: document.getElementById('minuteur-chiffre'),
+      zoneManuelle: document.getElementById('zone-manuelle'),
+      valeurCible: document.getElementById('valeur-cible'),
+      btnPause: document.getElementById('btn-pause'),
+      btnAction: document.getElementById('btn-action'),
+      finNomSeance: document.getElementById('fin-nom-seance')
+    };
+
+    let seance, etapes, indexEtape = 0;
+    let exercicesParId = new Map();
+    let phase = 'effort'; // 'effort' | 'repos' | 'attente'
+    let secondesRestantes = 0, dureeTotalePhase = 0;
+    let intervalId = null, enPause = false;
+
+    async function demarrer() {
+      const brut = sessionStorage.getItem('hf_execution_seance');
+      if (!brut) { els.erreur.classList.remove('hidden'); return; }
+
+      seance = JSON.parse(brut);
+      etapes = construireEtapes(seance);
+      els.sousTitre.textContent = seance.nom || 'Séance en cours';
+      els.execution.classList.remove('hidden');
+
+      const tousLesExercices = await ExerciceService.listerTous();
+      exercicesParId = new Map(tousLesExercices.map(ex => [ex.id, ex]));
+
+      demarrerEtape(0);
+    }
+
+    function demarrerEtape(i) {
+      indexEtape = i;
+      const etape = etapes[i];
+      els.progression.textContent =
+        `Exercice ${etape.blocIndex + 1}/${seance.blocs.length} — Série ${etape.serie}/${etape.totalSeries}`;
+      els.nomExercice.textContent = etape.exerciceNom;
+
+      const exerciceComplet = exercicesParId.get(etape.exerciceId);
+      els.exerciceGroupe.textContent = exerciceComplet
+        ? `💪 ${LIBELLES_GROUPES[exerciceComplet.groupeMusculaire] || exerciceComplet.groupeMusculaire}`
+        : '';
+      els.exerciceDescription.textContent = exerciceComplet?.description || '';
+      els.exerciceInstructions.textContent = exerciceComplet?.instructions || '';
+
+      if (etape.estAuto) {
+        phase = 'effort';
+        els.badgePhase.textContent = 'Effort';
+        els.badgePhase.className = 'badge';
+        els.minuteurZone.classList.remove('hidden');
+        els.zoneManuelle.classList.add('hidden');
+        els.btnPause.classList.remove('hidden');
+        els.btnAction.textContent = '⏭ Passer';
+        demarrerCompteARebours(etape.dureeEffortSecondes, () => passerAuRepos(etape));
+      } else {
+        phase = 'attente';
+        els.badgePhase.textContent = 'À toi de jouer';
+        els.badgePhase.className = 'badge';
+        els.minuteurZone.classList.add('hidden');
+        els.zoneManuelle.classList.remove('hidden');
+        els.btnPause.classList.add('hidden');
+        els.valeurCible.textContent = `🎯 ${etape.valeur} répétitions`;
+        els.btnAction.textContent = '✅ Série terminée';
+      }
+    }
+
+    function passerAuRepos(etape) {
+      clearInterval(intervalId);
+      if (etape.reposApresSecondes > 0) {
+        phase = 'repos';
+        els.badgePhase.textContent = 'Repos';
+        els.badgePhase.className = 'badge badge-vert';
+        els.minuteurZone.classList.remove('hidden');
+        els.zoneManuelle.classList.add('hidden');
+        els.btnPause.classList.remove('hidden');
+        els.btnAction.textContent = '⏭ Passer';
+        demarrerCompteARebours(etape.reposApresSecondes, etapeSuivante);
+      } else {
+        etapeSuivante();
+      }
+    }
+
+    function etapeSuivante() {
+      clearInterval(intervalId);
+      if (indexEtape + 1 >= etapes.length) { afficherFin(); return; }
+      demarrerEtape(indexEtape + 1);
+    }
+
+    let audioCtx = null;
+    function beep() {
+      audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = 880;
+      gain.gain.value = 0.15;
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    }
+
+    function demarrerCompteARebours(secondes, onTermine) {
+      clearInterval(intervalId);
+      secondesRestantes = secondes;
+      dureeTotalePhase = secondes;
+      enPause = false;
+      els.btnPause.textContent = '⏸ Pause';
+      majAffichageMinuteur();
+      intervalId = setInterval(() => {
+        if (enPause) return;
+        secondesRestantes--;
+        majAffichageMinuteur();
+        if (secondesRestantes >= 1 && secondesRestantes <= 5) beep();
+        if (secondesRestantes <= 0) { clearInterval(intervalId); onTermine(); }
+      }, 1000);
+    }
+
+    function majAffichageMinuteur() {
+      els.chiffre.textContent = secondesRestantes;
+      const pct = dureeTotalePhase > 0 ? Math.round((1 - secondesRestantes / dureeTotalePhase) * 100) : 0;
+      els.anneau.style.setProperty('--pct', pct);
+    }
+
+    function afficherFin() {
+      els.execution.classList.add('hidden');
+      els.finNomSeance.textContent = seance.nom || 'ta séance';
+      els.fin.classList.remove('hidden');
+    }
+
+    els.btnPause.addEventListener('click', () => {
+      enPause = !enPause;
+      els.btnPause.textContent = enPause ? '▶ Reprendre' : '⏸ Pause';
+    });
+
+    els.btnAction.addEventListener('click', () => {
+      const etape = etapes[indexEtape];
+      if (phase === 'attente' || phase === 'effort') passerAuRepos(etape);
+      else etapeSuivante();
+    });
+
+    demarrer();
+  </script>
+
+</body>
+</html>

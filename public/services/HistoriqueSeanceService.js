@@ -3,7 +3,7 @@
 // Les pages appelantes n'ont pas à connaître le mode de stockage utilisé.
 import { db } from '../firebase-config.js';
 import {
-  collection, addDoc, getDocs, query, orderBy
+  collection, addDoc, getDocs, query, orderBy, doc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { AuthService } from './AuthService.js';
 import { Seance } from '../models/Seance.js';
@@ -52,6 +52,17 @@ export const HistoriqueSeanceService = {
     return lireLocalStorage()
       .map(s => Seance.fromFirestore(s.id, s))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
+  },
+
+  async supprimer(id) {
+    const utilisateur = AuthService.utilisateurActuel();
+
+    if (utilisateur) {
+      await deleteDoc(doc(db, 'joueurs', utilisateur.uid, 'seances', id));
+      return;
+    }
+
+    ecrireLocalStorage(lireLocalStorage().filter(s => s.id !== id));
   },
 
   // Importe l'historique local dans Firestore lors de la première connexion

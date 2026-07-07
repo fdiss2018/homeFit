@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Exercice } from '../public/models/Exercice.js';
-import { filtrerExercices, genererSeance } from '../public/utils/GenerateurSeance.js';
+import { filtrerExercices, genererSeance, calculerDureeEstimeeMinutes } from '../public/utils/GenerateurSeance.js';
 
 function creerExercice(overrides = {}) {
   return new Exercice({
@@ -9,8 +9,8 @@ function creerExercice(overrides = {}) {
     groupeMusculaire: 'pectoraux',
     materiel: [],
     niveau: 'debutant',
-    type: 'repetitions',
-    valeurDefaut: 10,
+    valeurDefautRepetitions: 10,
+    valeurDefautDuree: 30,
     ...overrides
   });
 }
@@ -94,8 +94,64 @@ describe('genererSeance', () => {
 
   it('conserve les critères fournis sur la séance générée', () => {
     const exercices = [creerExercice()];
-    const criteres = { dureeMinutes: 15, niveau: 'debutant', groupesMusculaires: [], materielDisponible: [] };
+    const criteres = {
+      dureeMinutes: 15,
+      niveau: 'debutant',
+      groupesMusculaires: [],
+      materielDisponible: [],
+      reposEntreExercicesSecondes: 90,
+      preferenceType: 'duree',
+      enchainementAutomatique: false
+    };
     const seance = genererSeance(exercices, criteres);
     expect(seance.criteres).toEqual(criteres);
+  });
+
+  it('retombe sur les valeurs par défaut avec un critères minimal (sans les nouveaux champs)', () => {
+    const exercices = [creerExercice()];
+    expect(() => genererSeance(exercices, { dureeMinutes: 15, niveau: 'debutant' })).not.toThrow();
+  });
+
+  it("l'enchaînement automatique force le type 'duree' partout, même si preferenceType demande des répétitions", () => {
+    const exercices = [creerExercice({ valeurDefautRepetitions: 12, valeurDefautDuree: 40 })];
+    const seance = genererSeance(exercices, {
+      dureeMinutes: 10,
+      niveau: 'debutant',
+      preferenceType: 'repetitions',
+      enchainementAutomatique: true
+    });
+    expect(seance.blocs.every(b => b.type === 'duree')).toBe(true);
+    expect(seance.blocs.every(b => b.valeur === 40)).toBe(true);
+  });
+
+  it("preferenceType 'duree' (sans enchaînement) exprime les blocs en durée", () => {
+    const exercices = [creerExercice({ valeurDefautRepetitions: 12, valeurDefautDuree: 40 })];
+    const seance = genererSeance(exercices, { dureeMinutes: 10, niveau: 'debutant', preferenceType: 'duree' });
+    expect(seance.blocs.every(b => b.type === 'duree' && b.valeur === 40)).toBe(true);
+  });
+
+  it("preferenceType 'repetitions' (ou absent) exprime les blocs en répétitions", () => {
+    const exercices = [creerExercice({ valeurDefautRepetitions: 12, valeurDefautDuree: 40 })];
+    const seance = genererSeance(exercices, { dureeMinutes: 10, niveau: 'debutant' });
+    expect(seance.blocs.every(b => b.type === 'repetitions' && b.valeur === 12)).toBe(true);
+  });
+
+  it('reporte le repos entre exercices demandé sur chaque bloc', () => {
+    const exercices = [creerExercice()];
+    const seance = genererSeance(exercices, { dureeMinutes: 10, niveau: 'debutant', reposEntreExercicesSecondes: 90 });
+    expect(seance.blocs.every(b => b.reposApresSecondes === 90)).toBe(true);
+  });
+});
+
+describe('calculerDureeEstimeeMinutes', () => {
+  it('calcule la durée totale (effort + repos entre séries + repos entre exercices) en minutes', () => {
+    const blocs = [
+      { series: 3, valeur: 10, type: 'repetitions', reposSecondes: 30, reposApresSecondes: 60 },
+      { series: 3, valeur: 30, type: 'duree', reposSecondes: 30, reposApresSecondes: 60 }
+    ];
+    // Bloc 1 (répétitions, 3s/rep) : 3*(10*3) + 2*30 = 90 + 60 = 150s, + 60s de repos vers le bloc suivant = 210s
+    // Bloc 2 (durée) : 3*30 + 2*30 = 90 + 60 = 150s, pas de repos après (dernier bloc)
+    // Total = 210 + 150 = 360s = 6 min
+    expect(calculerDureeEstimeeMinutes(blocs)).toBe(6);
   });
 });
