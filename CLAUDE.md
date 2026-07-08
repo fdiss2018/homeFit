@@ -22,7 +22,7 @@ public/
 ├── historique.html            # Historique des séances enregistrées, bouton "Lancer" par séance
 ├── execution.html             # Écran d'exécution guidée (minuteur, enchaînement auto ou validation manuelle)
 ├── login.html                 # Connexion / inscription (Firebase Auth)
-├── admin.html                 # Import de la bibliothèque d'exercices (JSON), réservé à ADMIN_EMAIL
+├── admin.html                 # Import + suppression (unitaire ou totale) de la bibliothèque, réservé à ADMIN_EMAIL
 ├── firebase-config.example.js # Modèle de config Firebase (à copier en firebase-config.js, gitignoré)
 ├── auth-config.js             # Email admin autorisé sur admin.html
 ├── style.css                  # Styles globaux (thème sombre/orange, sans framework CSS)
@@ -35,7 +35,7 @@ public/
 │   ├── HistoriqueSeanceService.js  # Façade async : localStorage (anonyme) ou Firestore (connecté)
 │   └── AuthService.js          # Firebase Auth : inscription, connexion, déconnexion
 └── utils/
-    ├── constantes.js            # Constantes partagées (SECONDES_PAR_REPETITION)
+    ├── constantes.js            # Constantes partagées (SECONDES_PAR_REPETITION, MATERIEL_DISPONIBLE, LIBELLES)
     ├── GenerateurSeance.js       # filtrerExercices() + genererSeance() — logique pure, sans Firebase
     └── ExecutionSeance.js        # construireEtapes() — aplatit une séance en étapes pour l'écran d'exécution
 exemple/
@@ -102,7 +102,10 @@ ajustées manuellement sur `generateur.html` avant l'enregistrement.
 Champs requis à l'import (`admin.html`) : `nom` et `groupeMusculaire` (valeur valide). Les autres champs
 ont une valeur par défaut sûre si absents.
 
-Groupes musculaires valides : `jambes`, `dos`, `pectoraux`, `epaules`, `bras`, `abdominaux`, `cardio`, `full-body`.
+Groupes musculaires valides (`GROUPES_MUSCULAIRES`, taxonomie fine par muscle plutôt que par zone
+large) : `quadriceps`, `ischio-jambiers`, `fessiers`, `mollets`, `dorsaux`, `lombaires`, `trapezes`,
+`pectoraux`, `epaules`, `biceps`, `triceps`, `avant-bras`, `abdominaux`, `obliques`, `cardio`,
+`full-body`.
 Niveaux valides : `debutant`, `intermediaire`, `avance`.
 
 ## Modèle de données Firestore

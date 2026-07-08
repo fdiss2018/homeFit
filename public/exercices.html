@@ -16,18 +16,7 @@
 
   <main>
     <a href="index.html" class="lien-retour">← Retour</a>
-
-    <div class="carte hidden" id="carte-admin">
-      <p class="carte-titre">⚙️ Gestion de la bibliothèque (admin)</p>
-      <p class="carte-desc">Importe un fichier JSON (tableau d'exercices ou <code>{ "exercices": [...] }</code>).
-        Champs requis : <code>nom</code>, <code>groupeMusculaire</code> (valeur valide).</p>
-      <div style="display:flex; gap:10px; flex-wrap:wrap">
-        <label for="fichier-exercices" class="btn-primaire">📂 Importer (.json)</label>
-        <input type="file" id="fichier-exercices" accept=".json" class="hidden">
-        <button id="btn-exporter" class="btn-secondaire" type="button">⬇️ Exporter (JSON)</button>
-      </div>
-      <p id="msg-import" class="msg hidden"></p>
-    </div>
+    <a href="admin.html" id="lien-admin" class="btn-secondaire hidden" style="width:fit-content">⚙️ Administration</a>
 
     <div class="carte">
       <input type="text" id="recherche" class="input" placeholder="🔍 Rechercher un exercice…" autocomplete="off">
@@ -50,15 +39,10 @@
     import { AuthService } from './services/AuthService.js';
     import { ADMIN_EMAIL } from './auth-config.js';
     import { ExerciceService } from './services/ExerciceService.js';
-    import { Exercice, GROUPES_MUSCULAIRES } from './models/Exercice.js';
-    import { MATERIEL_DISPONIBLE } from './utils/constantes.js';
+    import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
+    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
 
     const NIVEAU_LIBELLE = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
-    const LIBELLES = {
-      jambes: 'Jambes', dos: 'Dos', pectoraux: 'Pectoraux', epaules: 'Épaules',
-      bras: 'Bras', abdominaux: 'Abdominaux', cardio: 'Cardio', 'full-body': 'Full-body',
-      halteres: 'Haltères', tapis: 'Tapis', banc: 'Banc', elastique: 'Élastique', kettlebell: 'Kettlebell'
-    };
 
     const listeEl = document.getElementById('liste-exercices');
     const rechercheEl = document.getElementById('recherche');
@@ -66,18 +50,18 @@
     const choixMateriel = document.getElementById('choix-materiel');
     let tousLesExercices = [];
 
-    function creerChoix(conteneur, valeurs) {
+    function creerChoix(conteneur, valeurs, avecIcone = false) {
       valeurs.forEach(valeur => {
         const el = document.createElement('button');
         el.type = 'button';
         el.className = 'choix';
-        el.textContent = LIBELLES[valeur] || valeur;
+        el.innerHTML = (avecIcone ? iconeGroupeHtml(valeur, 18) : '') + `<span>${LIBELLES[valeur] || valeur}</span>`;
         el.dataset.valeur = valeur;
         el.addEventListener('click', () => { el.classList.toggle('actif'); filtrer(); });
         conteneur.appendChild(el);
       });
     }
-    creerChoix(choixGroupes, GROUPES_MUSCULAIRES);
+    creerChoix(choixGroupes, GROUPES_MUSCULAIRES, true);
     creerChoix(choixMateriel, MATERIEL_DISPONIBLE);
 
     function valeursActives(conteneur) {
@@ -106,7 +90,9 @@
             <p class="carte-titre">${ex.nom}</p>
             <span class="badge">${NIVEAU_LIBELLE[ex.niveau] || ex.niveau}</span>
           </div>
-          <p class="carte-desc">${ex.groupeMusculaire} · ${materiel}</p>
+          <p class="carte-desc" style="display:flex; align-items:center; gap:8px">
+            ${iconeGroupeHtml(ex.groupeMusculaire, 22)} ${LIBELLES[ex.groupeMusculaire] || ex.groupeMusculaire} · ${materiel}
+          </p>
           <p class="carte-desc">🔁 ${ex.valeurDefautRepetitions} répétitions · ⏱️ ${ex.valeurDefautDuree}s</p>
           ${ex.description ? `<p class="carte-desc">${ex.description}</p>` : ''}
         `;
@@ -135,67 +121,9 @@
       filtrer();
     });
 
-    // ── Panneau admin : import / export JSON (réservé à ADMIN_EMAIL) ──
-    const carteAdmin = document.getElementById('carte-admin');
-    const fichierInput = document.getElementById('fichier-exercices');
-    const msgImport = document.getElementById('msg-import');
-    const btnExporter = document.getElementById('btn-exporter');
-
+    const lienAdmin = document.getElementById('lien-admin');
     AuthService.ecouterAuth(user => {
-      carteAdmin.classList.toggle('hidden', user?.email !== ADMIN_EMAIL);
-    });
-
-    function afficherMsg(el, texte, erreur = false) {
-      el.textContent = texte;
-      el.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
-      el.classList.remove('hidden');
-      setTimeout(() => el.classList.add('hidden'), 5000);
-    }
-
-    fichierInput.addEventListener('change', () => {
-      const fichier = fichierInput.files[0];
-      if (!fichier) return;
-
-      const reader = new FileReader();
-      reader.onload = async e => {
-        try {
-          const data = JSON.parse(e.target.result);
-          const items = Array.isArray(data) ? data : (data.exercices || []);
-          if (items.length === 0) throw new Error('Aucun exercice trouvé dans le fichier.');
-
-          let ok = 0, ko = 0;
-          for (const item of items) {
-            if (!item.nom || !GROUPES_MUSCULAIRES.includes(item.groupeMusculaire)) {
-              ko++;
-              console.warn('Exercice ignoré (nom ou groupeMusculaire invalide) :', item);
-              continue;
-            }
-            try {
-              await ExerciceService.creer(new Exercice(item));
-              ok++;
-            } catch { ko++; }
-          }
-
-          afficherMsg(msgImport, ko === 0
-            ? `✅ ${ok} exercice${ok > 1 ? 's' : ''} importé${ok > 1 ? 's' : ''}.`
-            : `⚠️ ${ok} importé(s), ${ko} en échec.`, ko > 0);
-        } catch (err) {
-          afficherMsg(msgImport, `❌ ${err.message}`, true);
-        }
-        fichierInput.value = '';
-      };
-      reader.readAsText(fichier);
-    });
-
-    btnExporter.addEventListener('click', () => {
-      const donnees = { exercices: tousLesExercices.map(ex => ex.toFirestore()) };
-      const blob = new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const lien = document.createElement('a');
-      lien.href = url;
-      lien.download = 'exercices-export.json';
-      lien.click();
-      URL.revokeObjectURL(url);
+      lienAdmin.classList.toggle('hidden', user?.email !== ADMIN_EMAIL);
     });
   </script>
 

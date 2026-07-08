@@ -2,7 +2,7 @@
   "exercices": [
     {
       "nom": "Squats",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "quadriceps",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
@@ -12,7 +12,7 @@
     },
     {
       "nom": "Fentes avant",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
@@ -22,7 +22,7 @@
     },
     {
       "nom": "Squat sauté",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "quadriceps",
       "materiel": [],
       "niveau": "avance",
       "valeurDefautRepetitions": 12,
@@ -32,8 +32,10 @@
     },
     {
       "nom": "Squat bulgare",
-      "groupeMusculaire": "jambes",
-      "materiel": ["banc"],
+      "groupeMusculaire": "fessiers",
+      "materiel": [
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -42,7 +44,7 @@
     },
     {
       "nom": "Fente arrière",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
@@ -52,7 +54,7 @@
     },
     {
       "nom": "Fente latérale",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
@@ -62,7 +64,7 @@
     },
     {
       "nom": "Chaise contre un mur",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "quadriceps",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 10,
@@ -72,7 +74,7 @@
     },
     {
       "nom": "Pont fessier",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
@@ -82,7 +84,7 @@
     },
     {
       "nom": "Pont fessier une jambe",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
@@ -92,7 +94,7 @@
     },
     {
       "nom": "Squat sumo",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
@@ -102,8 +104,10 @@
     },
     {
       "nom": "Squat goblet",
-      "groupeMusculaire": "jambes",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "quadriceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -112,8 +116,11 @@
     },
     {
       "nom": "Fente bulgare haltères",
-      "groupeMusculaire": "jambes",
-      "materiel": ["halteres", "banc"],
+      "groupeMusculaire": "fessiers",
+      "materiel": [
+        "halteres",
+        "banc"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -122,8 +129,10 @@
     },
     {
       "nom": "Soulevé de terre jambes tendues haltères",
-      "groupeMusculaire": "jambes",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "ischio-jambiers",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -132,7 +141,7 @@
     },
     {
       "nom": "Mollets debout",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "mollets",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 20,
@@ -142,8 +151,10 @@
     },
     {
       "nom": "Step-up sur banc",
-      "groupeMusculaire": "jambes",
-      "materiel": ["banc"],
+      "groupeMusculaire": "quadriceps",
+      "materiel": [
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -152,7 +163,7 @@
     },
     {
       "nom": "Squat isométrique avec pulse",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "quadriceps",
       "materiel": [],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
@@ -162,7 +173,7 @@
     },
     {
       "nom": "Fente sautée alternée",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "quadriceps",
       "materiel": [],
       "niveau": "avance",
       "valeurDefautRepetitions": 12,
@@ -172,7 +183,7 @@
     },
     {
       "nom": "Extension de hanche à quatre pattes",
-      "groupeMusculaire": "jambes",
+      "groupeMusculaire": "fessiers",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
@@ -182,8 +193,10 @@
     },
     {
       "nom": "Curl jambes avec élastique",
-      "groupeMusculaire": "jambes",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "ischio-jambiers",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -192,19 +205,22 @@
     },
     {
       "nom": "Squat avec élastique aux genoux",
-      "groupeMusculaire": "jambes",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "fessiers",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
       "description": "Squat avec bande de résistance placée au-dessus des genoux.",
       "instructions": "Élastique autour des genoux, descendre en squat en poussant les genoux vers l'extérieur contre la résistance."
     },
-
     {
       "nom": "Tractions australiennes",
-      "groupeMusculaire": "dos",
-      "materiel": ["banc"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -213,7 +229,7 @@
     },
     {
       "nom": "Extension lombaire au sol",
-      "groupeMusculaire": "dos",
+      "groupeMusculaire": "lombaires",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
@@ -223,8 +239,10 @@
     },
     {
       "nom": "Rowing haltère unilatéral",
-      "groupeMusculaire": "dos",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -233,8 +251,10 @@
     },
     {
       "nom": "Rowing élastique",
-      "groupeMusculaire": "dos",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -243,8 +263,10 @@
     },
     {
       "nom": "Tirage élastique vertical",
-      "groupeMusculaire": "dos",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -253,8 +275,10 @@
     },
     {
       "nom": "Good morning haltères",
-      "groupeMusculaire": "dos",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "lombaires",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -263,8 +287,10 @@
     },
     {
       "nom": "Soulevé de terre roumain haltères",
-      "groupeMusculaire": "dos",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "lombaires",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -273,7 +299,7 @@
     },
     {
       "nom": "Extension dorsale alternée bras/jambe",
-      "groupeMusculaire": "dos",
+      "groupeMusculaire": "lombaires",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
@@ -283,8 +309,11 @@
     },
     {
       "nom": "Rowing banc incliné haltères",
-      "groupeMusculaire": "dos",
-      "materiel": ["halteres", "banc"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "halteres",
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -293,7 +322,7 @@
     },
     {
       "nom": "Extension dorsale nage",
-      "groupeMusculaire": "dos",
+      "groupeMusculaire": "lombaires",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 10,
@@ -303,8 +332,10 @@
     },
     {
       "nom": "Tirage buste penché élastique",
-      "groupeMusculaire": "dos",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -313,8 +344,10 @@
     },
     {
       "nom": "Pull-apart élastique",
-      "groupeMusculaire": "dos",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "trapezes",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -323,8 +356,10 @@
     },
     {
       "nom": "Rowing kettlebell",
-      "groupeMusculaire": "dos",
-      "materiel": ["kettlebell"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -333,8 +368,10 @@
     },
     {
       "nom": "Shrugs haltères",
-      "groupeMusculaire": "dos",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "trapezes",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -343,8 +380,10 @@
     },
     {
       "nom": "Soulevé de terre kettlebell",
-      "groupeMusculaire": "dos",
-      "materiel": ["kettlebell"],
+      "groupeMusculaire": "lombaires",
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -353,8 +392,10 @@
     },
     {
       "nom": "Extension lombaire sur banc",
-      "groupeMusculaire": "dos",
-      "materiel": ["banc"],
+      "groupeMusculaire": "lombaires",
+      "materiel": [
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -363,8 +404,10 @@
     },
     {
       "nom": "Tirage horizontal élastique",
-      "groupeMusculaire": "dos",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -373,8 +416,10 @@
     },
     {
       "nom": "Rowing haltères buste penché",
-      "groupeMusculaire": "dos",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "dorsaux",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -383,7 +428,7 @@
     },
     {
       "nom": "Pont fessier avec extension dos",
-      "groupeMusculaire": "dos",
+      "groupeMusculaire": "lombaires",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
@@ -393,15 +438,16 @@
     },
     {
       "nom": "Rotation du buste élastique",
-      "groupeMusculaire": "dos",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "obliques",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
       "description": "Rotation du buste avec résistance élastique fixée sur le côté.",
       "instructions": "Élastique fixé sur le côté à hauteur de poitrine, tourner le buste en tirant la poignée vers l'autre côté."
     },
-
     {
       "nom": "Pompes",
       "groupeMusculaire": "pectoraux",
@@ -445,7 +491,9 @@
     {
       "nom": "Pompes déclinées",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["banc"],
+      "materiel": [
+        "banc"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -455,7 +503,9 @@
     {
       "nom": "Pompes inclinées",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["banc"],
+      "materiel": [
+        "banc"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -465,7 +515,10 @@
     {
       "nom": "Développé couché haltères",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["halteres", "banc"],
+      "materiel": [
+        "halteres",
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -475,7 +528,10 @@
     {
       "nom": "Écarté couché haltères",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["halteres", "banc"],
+      "materiel": [
+        "halteres",
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -485,7 +541,9 @@
     {
       "nom": "Pull-over haltère",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -515,7 +573,10 @@
     {
       "nom": "Développé haltères banc incliné",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["halteres", "banc"],
+      "materiel": [
+        "halteres",
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -535,7 +596,9 @@
     {
       "nom": "Dips sur banc",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["banc"],
+      "materiel": [
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -545,7 +608,9 @@
     {
       "nom": "Pull-over kettlebell",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -555,7 +620,9 @@
     {
       "nom": "Pompes avec élastique",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -565,7 +632,9 @@
     {
       "nom": "Écarté élastique debout",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -575,7 +644,9 @@
     {
       "nom": "Pompes genoux inclinées",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["banc"],
+      "materiel": [
+        "banc"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -595,18 +666,21 @@
     {
       "nom": "Pompes sur tapis",
       "groupeMusculaire": "pectoraux",
-      "materiel": ["tapis"],
+      "materiel": [
+        "tapis"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
       "description": "Pompes classiques réalisées sur un tapis pour plus de confort.",
       "instructions": "Mains légèrement plus larges que les épaules sur le tapis, descendre puis pousser."
     },
-
     {
       "nom": "Développé haltères",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -616,7 +690,9 @@
     {
       "nom": "Élévations latérales haltères",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -626,7 +702,9 @@
     {
       "nom": "Élévations frontales haltères",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -636,7 +714,9 @@
     {
       "nom": "Oiseau (élévations arrière) haltères",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -646,7 +726,9 @@
     {
       "nom": "Rotation externe élastique",
       "groupeMusculaire": "epaules",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -656,7 +738,9 @@
     {
       "nom": "Élévation latérale élastique",
       "groupeMusculaire": "epaules",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -666,7 +750,9 @@
     {
       "nom": "Développé militaire élastique",
       "groupeMusculaire": "epaules",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -696,7 +782,9 @@
     {
       "nom": "Arnold press haltères",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -706,7 +794,9 @@
     {
       "nom": "Traction d'épaule kettlebell",
       "groupeMusculaire": "epaules",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -716,7 +806,9 @@
     {
       "nom": "Rotation d'épaule kettlebell",
       "groupeMusculaire": "epaules",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -726,7 +818,9 @@
     {
       "nom": "Face pull élastique",
       "groupeMusculaire": "epaules",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -736,7 +830,9 @@
     {
       "nom": "Élévation en Y haltères légers",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -756,7 +852,9 @@
     {
       "nom": "Pompes pike pieds surélevés",
       "groupeMusculaire": "epaules",
-      "materiel": ["banc"],
+      "materiel": [
+        "banc"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -766,7 +864,10 @@
     {
       "nom": "Développé assis haltères",
       "groupeMusculaire": "epaules",
-      "materiel": ["halteres", "banc"],
+      "materiel": [
+        "halteres",
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -776,7 +877,9 @@
     {
       "nom": "Élévation latérale à genoux kettlebell",
       "groupeMusculaire": "epaules",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -786,7 +889,9 @@
     {
       "nom": "Rotation d'épaule mobilité tapis",
       "groupeMusculaire": "epaules",
-      "materiel": ["tapis"],
+      "materiel": [
+        "tapis"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -803,11 +908,12 @@
       "description": "Touché d'épaule alterné en position de planche.",
       "instructions": "En planche haute, toucher l'épaule opposée avec la main en gardant le bassin stable, puis alterner."
     },
-
     {
       "nom": "Curl biceps haltères",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -816,8 +922,10 @@
     },
     {
       "nom": "Curl marteau haltères",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -826,8 +934,10 @@
     },
     {
       "nom": "Extension triceps haltère au-dessus de la tête",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -836,8 +946,10 @@
     },
     {
       "nom": "Kickback triceps haltère",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -846,8 +958,10 @@
     },
     {
       "nom": "Dips triceps sur banc",
-      "groupeMusculaire": "bras",
-      "materiel": ["banc"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "banc"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -856,7 +970,7 @@
     },
     {
       "nom": "Pompes triceps mains rapprochées",
-      "groupeMusculaire": "bras",
+      "groupeMusculaire": "triceps",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
@@ -866,8 +980,10 @@
     },
     {
       "nom": "Curl biceps élastique",
-      "groupeMusculaire": "bras",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -876,8 +992,10 @@
     },
     {
       "nom": "Extension triceps élastique",
-      "groupeMusculaire": "bras",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -886,8 +1004,10 @@
     },
     {
       "nom": "Curl biceps concentré haltère",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -896,8 +1016,10 @@
     },
     {
       "nom": "Curl biceps kettlebell",
-      "groupeMusculaire": "bras",
-      "materiel": ["kettlebell"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -906,8 +1028,10 @@
     },
     {
       "nom": "Extension triceps kettlebell",
-      "groupeMusculaire": "bras",
-      "materiel": ["kettlebell"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -916,8 +1040,10 @@
     },
     {
       "nom": "Curl marteau élastique",
-      "groupeMusculaire": "bras",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -926,7 +1052,7 @@
     },
     {
       "nom": "Extension triceps au sol",
-      "groupeMusculaire": "bras",
+      "groupeMusculaire": "triceps",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 10,
@@ -936,8 +1062,10 @@
     },
     {
       "nom": "Curl 21 haltères",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 21,
       "valeurDefautDuree": 63,
@@ -946,7 +1074,7 @@
     },
     {
       "nom": "Planche bras tendus",
-      "groupeMusculaire": "bras",
+      "groupeMusculaire": "triceps",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 7,
@@ -956,8 +1084,10 @@
     },
     {
       "nom": "Curl biceps alterné haltères",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -966,8 +1096,10 @@
     },
     {
       "nom": "Kickback triceps élastique",
-      "groupeMusculaire": "bras",
-      "materiel": ["elastique"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -976,8 +1108,10 @@
     },
     {
       "nom": "Curl biceps prise large haltères",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "biceps",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -986,8 +1120,10 @@
     },
     {
       "nom": "Extension triceps sur banc",
-      "groupeMusculaire": "bras",
-      "materiel": ["banc"],
+      "groupeMusculaire": "triceps",
+      "materiel": [
+        "banc"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -996,15 +1132,16 @@
     },
     {
       "nom": "Rotation de poignet haltère léger",
-      "groupeMusculaire": "bras",
-      "materiel": ["halteres"],
+      "groupeMusculaire": "avant-bras",
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
       "description": "Mobilité et renforcement des avant-bras.",
       "instructions": "Avant-bras posé sur la cuisse, faire rouler le poignet de haut en bas avec un haltère léger."
     },
-
     {
       "nom": "Crunch classique",
       "groupeMusculaire": "abdominaux",
@@ -1027,7 +1164,7 @@
     },
     {
       "nom": "Bicycle crunch",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "obliques",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 20,
@@ -1047,7 +1184,7 @@
     },
     {
       "nom": "Gainage latéral droit",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "obliques",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 7,
@@ -1067,7 +1204,7 @@
     },
     {
       "nom": "Superman",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "lombaires",
       "materiel": [],
       "niveau": "debutant",
       "valeurDefautRepetitions": 12,
@@ -1087,7 +1224,7 @@
     },
     {
       "nom": "Russian twist (sans poids)",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "obliques",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 20,
@@ -1147,7 +1284,7 @@
     },
     {
       "nom": "Mountain climber croisé",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "obliques",
       "materiel": [],
       "niveau": "avance",
       "valeurDefautRepetitions": 20,
@@ -1177,7 +1314,7 @@
     },
     {
       "nom": "Standing oblique crunch (debout)",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "obliques",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 20,
@@ -1187,7 +1324,7 @@
     },
     {
       "nom": "Planche inversée (reverse plank)",
-      "groupeMusculaire": "abdominaux",
+      "groupeMusculaire": "lombaires",
       "materiel": [],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 7,
@@ -1205,7 +1342,6 @@
       "description": "Enchaînement dynamique de la position debout à la planche.",
       "instructions": "Debout, plier le buste et marcher avec les mains jusqu'à la planche haute, tenir un instant, puis remonter en marchant vers les pieds."
     },
-
     {
       "nom": "Mountain climbers",
       "groupeMusculaire": "cardio",
@@ -1406,11 +1542,12 @@
       "description": "Alternance de sprints courts et intenses sur place.",
       "instructions": "Courir sur place à intensité maximale par courtes salves, en gardant les genoux hauts."
     },
-
     {
       "nom": "Swing kettlebell",
       "groupeMusculaire": "full-body",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 15,
       "valeurDefautDuree": 45,
@@ -1430,7 +1567,9 @@
     {
       "nom": "Clean and press haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -1440,7 +1579,9 @@
     {
       "nom": "Thruster haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -1450,7 +1591,9 @@
     {
       "nom": "Renegade row haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -1460,7 +1603,9 @@
     {
       "nom": "Turkish get-up kettlebell",
       "groupeMusculaire": "full-body",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 6,
       "valeurDefautDuree": 18,
@@ -1470,7 +1615,9 @@
     {
       "nom": "Man maker haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 8,
       "valeurDefautDuree": 24,
@@ -1480,7 +1627,9 @@
     {
       "nom": "Squat to press haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -1490,7 +1639,9 @@
     {
       "nom": "Deadlift kettlebell",
       "groupeMusculaire": "full-body",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -1520,7 +1671,9 @@
     {
       "nom": "Devil press haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 8,
       "valeurDefautDuree": 24,
@@ -1530,7 +1683,9 @@
     {
       "nom": "Kettlebell clean",
       "groupeMusculaire": "full-body",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -1540,7 +1695,9 @@
     {
       "nom": "Marche chargée kettlebell",
       "groupeMusculaire": "full-body",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "debutant",
       "valeurDefautRepetitions": 10,
       "valeurDefautDuree": 30,
@@ -1550,7 +1707,9 @@
     {
       "nom": "Squat avec rotation élastique",
       "groupeMusculaire": "full-body",
-      "materiel": ["elastique"],
+      "materiel": [
+        "elastique"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -1570,7 +1729,9 @@
     {
       "nom": "Kettlebell figure 8",
       "groupeMusculaire": "full-body",
-      "materiel": ["kettlebell"],
+      "materiel": [
+        "kettlebell"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -1580,7 +1741,9 @@
     {
       "nom": "Fentes avec rotation haltères",
       "groupeMusculaire": "full-body",
-      "materiel": ["halteres"],
+      "materiel": [
+        "halteres"
+      ],
       "niveau": "intermediaire",
       "valeurDefautRepetitions": 12,
       "valeurDefautDuree": 36,
@@ -1590,7 +1753,9 @@
     {
       "nom": "Burpee avec traction sur banc",
       "groupeMusculaire": "full-body",
-      "materiel": ["banc"],
+      "materiel": [
+        "banc"
+      ],
       "niveau": "avance",
       "valeurDefautRepetitions": 8,
       "valeurDefautDuree": 24,

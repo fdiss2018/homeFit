@@ -82,9 +82,12 @@
       <p class="carte-titre">Ta séance</p>
       <p class="carte-desc" id="resume-seance"></p>
       <div id="liste-blocs"></div>
-      <div class="champ" style="display:flex; gap:8px; align-items:end">
-        <select id="select-ajout-exercice" class="input" style="flex:1"></select>
-        <button id="btn-ajouter-exercice" class="btn-secondaire" type="button">➕ Ajouter</button>
+      <div class="champ">
+        <label for="filtre-groupe-ajout">Ajouter un exercice</label>
+        <select id="filtre-groupe-ajout" class="input" style="margin-bottom:8px">
+          <option value="">Tous les groupes musculaires</option>
+        </select>
+        <div id="liste-ajout-exercice" class="liste-ajout"></div>
       </div>
       <div class="champ">
         <label for="nom-seance">Nom de la séance (optionnel)</label>
@@ -103,20 +106,14 @@
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { genererSeance, calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE, REPOS_ENTRE_SERIES } from './utils/GenerateurSeance.js';
     import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
-    import { MATERIEL_DISPONIBLE } from './utils/constantes.js';
+    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
 
-    const LIBELLES = {
-      jambes: 'Jambes', dos: 'Dos', pectoraux: 'Pectoraux', epaules: 'Épaules',
-      bras: 'Bras', abdominaux: 'Abdominaux', cardio: 'Cardio', 'full-body': 'Full-body',
-      halteres: 'Haltères', tapis: 'Tapis', banc: 'Banc', elastique: 'Élastique', kettlebell: 'Kettlebell'
-    };
-
-    function creerChoix(conteneur, valeurs) {
+    function creerChoix(conteneur, valeurs, avecIcone = false) {
       valeurs.forEach(valeur => {
         const el = document.createElement('button');
         el.type = 'button';
         el.className = 'choix';
-        el.textContent = LIBELLES[valeur] || valeur;
+        el.innerHTML = (avecIcone ? iconeGroupeHtml(valeur, 18) : '') + `<span>${LIBELLES[valeur] || valeur}</span>`;
         el.dataset.valeur = valeur;
         el.addEventListener('click', () => el.classList.toggle('actif'));
         conteneur.appendChild(el);
@@ -125,7 +122,7 @@
 
     const choixGroupes  = document.getElementById('choix-groupes');
     const choixMateriel = document.getElementById('choix-materiel');
-    creerChoix(choixGroupes, GROUPES_MUSCULAIRES);
+    creerChoix(choixGroupes, GROUPES_MUSCULAIRES, true);
     creerChoix(choixMateriel, MATERIEL_DISPONIBLE);
 
     function valeursActives(conteneur) {
@@ -162,19 +159,43 @@
     const btnRegenerer    = document.getElementById('btn-regenerer');
     const msgResultat     = document.getElementById('msg-resultat');
     const nomSeance       = document.getElementById('nom-seance');
-    const selectAjoutExercice = document.getElementById('select-ajout-exercice');
-    const btnAjouterExercice  = document.getElementById('btn-ajouter-exercice');
+    const filtreGroupeAjout = document.getElementById('filtre-groupe-ajout');
+    const listeAjoutExercice = document.getElementById('liste-ajout-exercice');
 
     let exercices = [];
     let seanceCourante = null;
 
     async function chargerExercices() {
       exercices = await ExerciceService.listerTous();
-      selectAjoutExercice.innerHTML = [...exercices]
-        .sort((a, b) => a.nom.localeCompare(b.nom))
-        .map(ex => `<option value="${ex.id}">${ex.nom}</option>`)
-        .join('');
+      filtreGroupeAjout.innerHTML = '<option value="">Tous les groupes musculaires</option>' +
+        GROUPES_MUSCULAIRES.map(g => `<option value="${g}">${LIBELLES[g] || g}</option>`).join('');
+      afficherListeAjout();
     }
+
+    function afficherListeAjout() {
+      const groupe = filtreGroupeAjout.value;
+      const filtres = exercices
+        .filter(ex => !groupe || ex.groupeMusculaire === groupe)
+        .sort((a, b) => a.nom.localeCompare(b.nom));
+
+      if (filtres.length === 0) {
+        listeAjoutExercice.innerHTML = '<p class="vide">Aucun exercice pour ce groupe.</p>';
+        return;
+      }
+
+      listeAjoutExercice.innerHTML = filtres.map(ex => `
+        <div class="ligne-ajout-exercice" data-id="${ex.id}">
+          ${iconeGroupeHtml(ex.groupeMusculaire, 32)}
+          <div class="ligne-ajout-info">
+            <div class="ligne-ajout-nom">${ex.nom}</div>
+            ${ex.description ? `<div class="ligne-ajout-desc">${ex.description}</div>` : ''}
+          </div>
+          <button class="btn-ajout-ligne" type="button" title="Ajouter">➕</button>
+        </div>
+      `).join('');
+    }
+
+    filtreGroupeAjout.addEventListener('change', afficherListeAjout);
 
     function rafraichirResume() {
       const n = seanceCourante.blocs.length;
@@ -235,9 +256,11 @@
       rafraichirBlocs();
     });
 
-    btnAjouterExercice.addEventListener('click', () => {
-      if (!seanceCourante || !selectAjoutExercice.value) return;
-      const exercice = exercices.find(ex => ex.id === selectAjoutExercice.value);
+    listeAjoutExercice.addEventListener('click', e => {
+      const bouton = e.target.closest('.btn-ajout-ligne');
+      if (!bouton || !seanceCourante) return;
+      const id = bouton.closest('.ligne-ajout-exercice').dataset.id;
+      const exercice = exercices.find(ex => ex.id === id);
       if (!exercice) return;
 
       const type = checkboxEnchainement.checked

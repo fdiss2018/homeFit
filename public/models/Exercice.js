@@ -1,7 +1,11 @@
 import { SECONDES_PAR_REPETITION } from '../utils/constantes.js';
 
 export const GROUPES_MUSCULAIRES = [
-  'jambes', 'dos', 'pectoraux', 'epaules', 'bras', 'abdominaux', 'cardio', 'full-body'
+  'quadriceps', 'ischio-jambiers', 'fessiers', 'mollets',
+  'dorsaux', 'lombaires', 'trapezes',
+  'pectoraux', 'epaules', 'biceps', 'triceps', 'avant-bras',
+  'abdominaux', 'obliques',
+  'cardio', 'full-body'
 ];
 
 export const NIVEAUX = ['debutant', 'intermediaire', 'avance'];

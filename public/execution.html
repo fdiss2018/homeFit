@@ -25,7 +25,7 @@
     <div id="ecran-execution" class="carte hidden">
       <p class="progression-globale" id="progression-globale"></p>
       <h2 class="nom-exercice-courant" id="nom-exercice"></h2>
-      <p class="badge" id="exercice-groupe" style="display:block; text-align:center; margin:0 auto 10px; width:fit-content"></p>
+      <p class="badge" id="exercice-groupe" style="display:flex; align-items:center; gap:6px; margin:0 auto 10px; width:fit-content"></p>
       <p class="carte-desc" id="exercice-description" style="text-align:center"></p>
       <p class="carte-desc" id="exercice-instructions" style="text-align:center"></p>
       <span class="badge" id="badge-phase"></span>
@@ -57,7 +57,7 @@
   <script type="module">
     import { construireEtapes } from './utils/ExecutionSeance.js';
     import { ExerciceService } from './services/ExerciceService.js';
-    import { LIBELLES_GROUPES } from './utils/constantes.js';
+    import { LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
 
     const els = {
       sousTitre: document.getElementById('sous-titre'),
@@ -109,8 +109,8 @@
       els.nomExercice.textContent = etape.exerciceNom;
 
       const exerciceComplet = exercicesParId.get(etape.exerciceId);
-      els.exerciceGroupe.textContent = exerciceComplet
-        ? `💪 ${LIBELLES_GROUPES[exerciceComplet.groupeMusculaire] || exerciceComplet.groupeMusculaire}`
+      els.exerciceGroupe.innerHTML = exerciceComplet
+        ? iconeGroupeHtml(exerciceComplet.groupeMusculaire, 20) + `<span>${LIBELLES[exerciceComplet.groupeMusculaire] || exerciceComplet.groupeMusculaire}</span>`
         : '';
       els.exerciceDescription.textContent = exerciceComplet?.description || '';
       els.exerciceInstructions.textContent = exerciceComplet?.instructions || '';

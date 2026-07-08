@@ -21,8 +21,11 @@
       <p class="carte-desc">Importe un fichier JSON (tableau d'exercices ou <code>{ "exercices": [...] }</code>).
         Champs requis : <code>nom</code>, <code>groupeMusculaire</code> (valeur valide).</p>
 
-      <label for="fichier-exercices" class="btn-primaire">📂 Importer des exercices (.json)</label>
-      <input type="file" id="fichier-exercices" accept=".json" class="hidden">
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <label for="fichier-exercices" class="btn-primaire">📂 Importer (.json)</label>
+        <input type="file" id="fichier-exercices" accept=".json" class="hidden">
+        <button id="btn-exporter" class="btn-secondaire" type="button">⬇️ Exporter (JSON)</button>
+      </div>
       <p id="msg-import" class="msg hidden"></p>
     </div>
 
@@ -31,6 +34,7 @@
         <p class="carte-titre" style="margin:0">Exercices existants</p>
         <span id="compte-exercices" class="carte-desc" style="margin:0"></span>
       </div>
+      <button id="btn-tout-supprimer" class="btn-danger" style="margin-top:10px">🗑️ Tout supprimer</button>
       <hr class="sep">
       <div id="liste-admin">
         <p class="chargement">Chargement...</p>
@@ -72,6 +76,10 @@
     const msgImport = document.getElementById('msg-import');
     const listeAdmin = document.getElementById('liste-admin');
     const compteExercices = document.getElementById('compte-exercices');
+    const btnToutSupprimer = document.getElementById('btn-tout-supprimer');
+    const btnExporter = document.getElementById('btn-exporter');
+
+    let exercicesActuels = [];
 
     fichierInput.addEventListener('change', () => {
       const fichier = fichierInput.files[0];
@@ -108,7 +116,27 @@
       reader.readAsText(fichier);
     });
 
+    btnToutSupprimer.addEventListener('click', async () => {
+      if (exercicesActuels.length === 0) return;
+      if (!confirm(`Supprimer définitivement les ${exercicesActuels.length} exercices de la bibliothèque ? Cette action est irréversible.`)) return;
+      btnToutSupprimer.disabled = true;
+      await Promise.all(exercicesActuels.map(ex => ExerciceService.supprimer(ex.id)));
+      btnToutSupprimer.disabled = false;
+    });
+
+    btnExporter.addEventListener('click', () => {
+      const donnees = { exercices: exercicesActuels.map(ex => ex.toFirestore()) };
+      const blob = new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const lien = document.createElement('a');
+      lien.href = url;
+      lien.download = 'exercices-export.json';
+      lien.click();
+      URL.revokeObjectURL(url);
+    });
+
     function afficherListe(exercices) {
+      exercicesActuels = exercices;
       compteExercices.textContent = `${exercices.length} exercice${exercices.length > 1 ? 's' : ''}`;
 
       if (exercices.length === 0) {
