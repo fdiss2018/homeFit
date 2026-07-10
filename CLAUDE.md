@@ -10,6 +10,9 @@ Générateur de séances de sport à la maison.
 - **Authentification** : Firebase Auth (email + mot de passe)
 - **SDK Firebase** : v12 chargé via CDN (`https://www.gstatic.com/firebasejs/12.12.0/...`)
 - **Modules ES** : les scripts utilisent `type="module"`
+- **IA (optionnelle)** : API Gemini (niveau gratuit, `fetch()` direct depuis le navigateur — voir
+  section "Assistant IA" plus bas) pour convertir une description en langage naturel en critères de
+  génération
 - **Tests** : Vitest (dev uniquement — ne fait pas partie du déploiement Firebase)
 
 ## Structure des fichiers
@@ -19,11 +22,12 @@ public/
 ├── index.html                 # Accueil : accès générateur / bibliothèque / historique / compte
 ├── generateur.html            # Formulaire de critères → séance générée → édition des blocs → enregistrement
 ├── exercices.html             # Bibliothèque d'exercices (lecture seule, recherche)
-├── historique.html            # Historique des séances enregistrées, bouton "Lancer" par séance
+├── historique.html            # Historique des séances : Lancer/Modifier/Supprimer + export/import JSON
 ├── execution.html             # Écran d'exécution guidée (minuteur, enchaînement auto ou validation manuelle)
 ├── login.html                 # Connexion / inscription (Firebase Auth)
-├── admin.html                 # Import + suppression (unitaire ou totale) de la bibliothèque, réservé à ADMIN_EMAIL
+├── admin.html                 # Import/export, ajout/modification/suppression manuelle ou via IA, réservé à ADMIN_EMAIL
 ├── firebase-config.example.js # Modèle de config Firebase (à copier en firebase-config.js, gitignoré)
+├── gemini-config.example.js   # Modèle de clé API Gemini (à copier en gemini-config.js, gitignoré)
 ├── auth-config.js             # Email admin autorisé sur admin.html
 ├── style.css                  # Styles globaux (thème sombre/orange, sans framework CSS)
 ├── 404.html                   # Page d'erreur personnalisée
@@ -31,13 +35,16 @@ public/
 │   ├── Exercice.js            # Classe Exercice (nom, groupeMusculaire, materiel, niveau, 2 valeurs par défaut...)
 │   └── Seance.js               # Classe Seance (blocs d'exercices générés, durée estimée)
 ├── services/
-│   ├── ExerciceService.js      # CRUD Firestore de la bibliothèque d'exercices
+│   ├── ExerciceService.js      # CRUD Firestore de la bibliothèque d'exercices (creer/mettreAJour/supprimer/lister)
 │   ├── HistoriqueSeanceService.js  # Façade async : localStorage (anonyme) ou Firestore (connecté)
-│   └── AuthService.js          # Firebase Auth : inscription, connexion, déconnexion
+│   ├── AuthService.js          # Firebase Auth : inscription, connexion, déconnexion
+│   └── GeminiService.js         # Appel fetch() vers l'API Gemini (importé dynamiquement, voir plus bas)
 └── utils/
     ├── constantes.js            # Constantes partagées (SECONDES_PAR_REPETITION, MATERIEL_DISPONIBLE, LIBELLES)
     ├── GenerateurSeance.js       # filtrerExercices() + genererSeance() — logique pure, sans Firebase
-    └── ExecutionSeance.js        # construireEtapes() — aplatit une séance en étapes pour l'écran d'exécution
+    ├── ExecutionSeance.js        # construireEtapes() — aplatit une séance en étapes pour l'écran d'exécution
+    ├── InterpreterDemandeIA.js   # construireRequeteGemini() + validerCriteresIA() — logique pure, sans réseau
+    └── InterpreterExerciceIA.js  # construireRequeteGeminiExercice() + validerExerciceIA() — idem, pour un Exercice
 exemple/
 └── exercices-exemple.json      # Bibliothèque d'exemple (160 exercices, 20 par groupe musculaire) à importer via admin.html
 ```
@@ -49,10 +56,13 @@ Un **Exercice** appartient à un **groupe musculaire**, nécessite éventuelleme
 pouvoir être exprimé dans l'un ou l'autre mode selon les critères de génération de la séance.
 
 Une **Seance** est générée à partir de **critères** (durée souhaitée, groupes musculaires ciblés, matériel
-disponible, niveau, repos entre exercices, préférence répétitions/durée, enchaînement automatique) : elle
-contient une liste de **blocs** (exercice + nombre de séries + valeur d'effort + temps de repos) dont la
-durée totale estimée approche la durée demandée. Les valeurs de chaque bloc (séries, valeur) peuvent être
-ajustées manuellement sur `generateur.html` avant l'enregistrement.
+disponible, niveau, repos entre séries, repos entre exercices, préférence répétitions/durée, enchaînement
+automatique) : elle contient une liste de **blocs** (exercice + nombre de séries + valeur d'effort + temps
+de repos) dont la durée totale estimée approche la durée demandée. Chaque bloc distingue deux temps de
+repos : `reposSecondes` (entre les séries d'un même exercice) et `reposApresSecondes` (après le dernier
+exercice, avant de passer au suivant). Les valeurs de chaque bloc (séries, valeur, les deux repos) peuvent
+être ajustées manuellement exercice par exercice sur `generateur.html` avant l'enregistrement, et de la
+même façon en modification sur `historique.html`.
 
 - `Exercice` — `id`, `nom`, `groupeMusculaire`, `materiel[]`, `niveau` (debutant|intermediaire|avance),
   `valeurDefautRepetitions`, `valeurDefautDuree`, `description`, `instructions`, `image`.
@@ -64,9 +74,9 @@ ajustées manuellement sur `generateur.html` avant l'enregistrement.
   niveaux plus faciles), groupe musculaire (vide = tous) et matériel (un exercice sans matériel passe
   toujours ; sinon tout le matériel requis doit être disponible)
 - `GenerateurSeance.genererSeance(exercices, criteres)` — mélange les exercices éligibles et pioche des
-  blocs (3 séries, 30s de repos entre séries, repos entre exercices et type/valeur pilotés par
-  `criteres.reposEntreExercicesSecondes` / `criteres.preferenceType` / `criteres.enchainementAutomatique`)
-  jusqu'à approcher la durée cible
+  blocs (3 séries ; repos entre séries, repos entre exercices et type/valeur pilotés par
+  `criteres.reposEntreSeriesSecondes` / `criteres.reposEntreExercicesSecondes` / `criteres.preferenceType` /
+  `criteres.enchainementAutomatique`, avec repli à 30s / 60s si absents) jusqu'à approcher la durée cible
 - `GenerateurSeance.calculerDureeEstimeeMinutes(blocs)` — recalcule la durée totale à partir de blocs déjà
   construits, réutilisé après une édition manuelle d'un bloc
 - `ExecutionSeance.construireEtapes(seance)` — aplatit tous les blocs × séries d'une séance en une liste
@@ -152,6 +162,58 @@ Pour un utilisateur anonyme, la même structure est stockée dans `localStorage[
 connaître le mode de stockage. Lors de la première connexion sur un device,
 `HistoriqueSeanceService.migrerDepuisLocalStorage(uid)` importe l'historique local dans Firestore.
 
+`historique.html` propose aussi un export/import JSON de l'historique (même pattern que
+l'import/export d'exercices dans `admin.html`) : export via `seance.toFirestore()`, import via
+`Seance.fromFirestore(null, item)` puis `HistoriqueSeanceService.ajouter()` (crée toujours de
+nouvelles entrées, jamais de mise à jour par id). Seule validation : chaque séance importée doit
+avoir un tableau `blocs` non vide ; la durée estimée est toujours recalculée
+(`calculerDureeEstimeeMinutes`) plutôt que de faire confiance à la valeur du fichier importé.
+
+## Assistant IA (description en langage naturel → critères ou fiche exercice)
+
+Deux usages de l'API Gemini (niveau gratuit, sans carte bancaire), tous deux conçus sur le même
+principe : **l'IA ne choisit/n'écrit jamais rien directement dans Firestore**, elle ne fait que
+pré-remplir un formulaire existant que l'utilisateur relit et valide lui-même avant enregistrement.
+
+- Sur `generateur.html` ("Décris ta séance") : convertit une description en critères de génération,
+  passés tels quels à `genererSeance()` — la sélection des exercices reste entièrement gérée par la
+  logique de génération déjà testée.
+- Sur `admin.html` ("Décrire l'exercice à l'IA") : convertit une description en fiche `Exercice`
+  (nom, groupe musculaire, matériel, niveau, valeurs par défaut, description, instructions), qui
+  pré-remplit le formulaire d'ajout/modification — l'utilisateur clique toujours lui-même sur
+  "Enregistrer".
+
+- `utils/InterpreterDemandeIA.js` / `utils/InterpreterExerciceIA.js` : chacun construit le prompt et
+  le schéma de sortie JSON forcé (`responseSchema`), et valide la réponse sans jamais lui faire
+  confiance aveuglément — chaque champ est filtré/ramené à une valeur connue du domaine. Pour les
+  critères de séance (données éphémères), un champ invalide retombe silencieusement sur un défaut
+  sûr. Pour une fiche d'exercice (écrite dans la bibliothèque **partagée**), `nom` et
+  `groupeMusculaire` invalides ou absents font **échouer** explicitement l'appel plutôt que
+  d'écrire une entrée corrompue — même règle que la validation déjà en place à l'import JSON.
+  Logique pure, testée sans réseau (`tests/InterpreterDemandeIA.test.js`,
+  `tests/InterpreterExerciceIA.test.js`).
+- `services/GeminiService.js` : seul point d'appel réseau (`fetch` vers
+  `generativelanguage.googleapis.com`, factorisé dans une fonction privée `appelerGemini()` commune
+  aux deux usages), importé **dynamiquement** dans `generateur.html`/`admin.html` (pas en haut du
+  fichier) pour qu'un `gemini-config.js` absent ne casse que le bouton IA, jamais le formulaire
+  manuel existant.
+
+**Modèle de sécurité** : l'app est 100 % statique (pas de backend), donc la clé API Gemini est
+forcément visible dans le code servi au navigateur. Pour limiter les abus, la clé doit être
+**restreinte par référent HTTP** (console Google Cloud → Identifiants) au(x) domaine(s) Firebase
+Hosting du projet, plutôt que passer par un backend (Cloud Functions nécessiterait le plan Blaze de
+Firebase, donc une carte bancaire enregistrée — ce qu'on cherche justement à éviter).
+
+**Churn des modèles** : Google retire ses modèles gratuits assez vite et parfois sans préavis (vécu
+en juillet 2026 avec `gemini-2.5-flash-lite` puis `gemini-3-flash`, coupés du jour au lendemain).
+`GEMINI_MODEL` (dans `gemini-config.js`) pointe donc vers `gemini-flash-lite-latest` — un **alias**
+maintenu par Google (pas une version datée) qui suit automatiquement son modèle flash-lite gratuit
+courant, pour ne plus avoir à mettre cette valeur à jour à chaque dépréciation. Si l'IA renvoie
+malgré tout une erreur 404 "model not found", `GeminiService.js` l'indique explicitement dans le
+message d'erreur : lister les modèles réellement disponibles pour la clé avec
+`GET https://generativelanguage.googleapis.com/v1beta/models?key=TA_CLE` (l'endpoint `ListModels`)
+plutôt que de se fier à la documentation ou à une recherche web, qui datent vite sur ce sujet.
+
 ## Gestion des utilisateurs
 
 Identique au principe utilisé dans quizz-battle : anonyme via UUID/localStorage, connecté via Firebase
@@ -177,8 +239,10 @@ npm run test:run  # one-shot (CI)
 
 ```
 tests/
-├── GenerateurSeance.test.js   # filtrerExercices, genererSeance, calculerDureeEstimeeMinutes
-└── ExecutionSeance.test.js    # construireEtapes (aplatissement blocs × séries, auto vs manuel, repos)
+├── GenerateurSeance.test.js      # filtrerExercices, genererSeance, calculerDureeEstimeeMinutes
+├── ExecutionSeance.test.js       # construireEtapes (aplatissement blocs × séries, auto vs manuel, repos)
+├── InterpreterDemandeIA.test.js  # construireRequeteGemini, validerCriteresIA (jamais confiance à la sortie IA)
+└── InterpreterExerciceIA.test.js # construireRequeteGeminiExercice, validerExerciceIA (échoue si nom/groupe invalides)
 ```
 
 **Règle** : toute nouvelle règle de génération ou de filtrage doit être couverte par un test avant d'être
@@ -192,6 +256,9 @@ mergée. Ne pas mocker `Math.random` — préférer des assertions sur l'ensembl
 4. Renseigner `public/auth-config.js` (`ADMIN_EMAIL`) avec l'email qui pourra importer des exercices
 5. `firebase use --add` pour lier le projet local au projet Firebase créé
 6. Importer `exemple/exercices-exemple.json` via `admin.html` pour peupler la bibliothèque
+7. *(Optionnel)* Pour l'assistant IA : créer une clé sur [aistudio.google.com/apikey](https://aistudio.google.com/apikey),
+   la restreindre par référent HTTP à ton domaine Firebase Hosting, puis copier
+   `public/gemini-config.example.js` en `public/gemini-config.js` et renseigner la clé
 
 ## Déploiement
 

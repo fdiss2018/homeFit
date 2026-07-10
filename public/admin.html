@@ -30,11 +30,78 @@
     </div>
 
     <div class="carte">
+      <p class="carte-titre" id="titre-form-exercice">➕ Ajouter un exercice</p>
+
+      <div class="champ">
+        <label for="description-ia-exercice">Décrire l'exercice à l'IA <span style="text-transform:none">(optionnel)</span></label>
+        <textarea id="description-ia-exercice" class="input" rows="2" placeholder="Ex : pompes diamant, cible triceps et pectoraux, niveau avancé"></textarea>
+        <button id="btn-generer-ia-exercice" class="btn-secondaire" type="button" style="margin-top:8px">✨ Pré-remplir avec l'IA</button>
+      </div>
+      <hr class="sep">
+
+      <div class="champ">
+        <label for="nom-exercice">Nom</label>
+        <input type="text" id="nom-exercice" class="input" placeholder="Ex : Pompes diamant">
+      </div>
+      <div class="champ">
+        <label for="groupe-exercice">Groupe musculaire</label>
+        <select id="groupe-exercice" class="input"></select>
+      </div>
+      <div class="champ">
+        <label>Matériel <span style="text-transform:none">(vide = poids du corps)</span></label>
+        <div class="grille-choix" id="choix-materiel-exercice"></div>
+      </div>
+      <div class="champ">
+        <label for="niveau-exercice">Niveau</label>
+        <select id="niveau-exercice" class="input">
+          <option value="debutant">Débutant</option>
+          <option value="intermediaire">Intermédiaire</option>
+          <option value="avance">Avancé</option>
+        </select>
+      </div>
+      <div class="champ" style="display:flex; gap:10px">
+        <div style="flex:1">
+          <label for="reps-exercice">Répétitions par défaut</label>
+          <input type="number" min="1" id="reps-exercice" class="input" value="10">
+        </div>
+        <div style="flex:1">
+          <label for="duree-exercice">Durée par défaut (s)</label>
+          <input type="number" min="1" id="duree-exercice" class="input" value="30">
+        </div>
+      </div>
+      <div class="champ">
+        <label for="description-exercice">Description</label>
+        <textarea id="description-exercice" class="input" rows="2"></textarea>
+      </div>
+      <div class="champ">
+        <label for="instructions-exercice">Instructions</label>
+        <textarea id="instructions-exercice" class="input" rows="3"></textarea>
+      </div>
+
+      <div style="display:flex; gap:10px">
+        <button id="btn-enregistrer-exercice" class="btn-primaire" style="flex:1">💾 Enregistrer</button>
+        <button id="btn-annuler-edition-exercice" class="btn-secondaire hidden">✖ Annuler</button>
+      </div>
+      <p id="msg-form-exercice" class="msg hidden"></p>
+    </div>
+
+    <div class="carte">
       <div style="display:flex; justify-content:space-between; align-items:center">
         <p class="carte-titre" style="margin:0">Exercices existants</p>
         <span id="compte-exercices" class="carte-desc" style="margin:0"></span>
       </div>
-      <button id="btn-tout-supprimer" class="btn-danger" style="margin-top:10px">🗑️ Tout supprimer</button>
+
+      <input type="text" id="recherche-admin" class="input" style="margin-top:10px" placeholder="🔍 Rechercher un exercice…" autocomplete="off">
+      <div class="champ" style="margin-top:14px; margin-bottom:0">
+        <label>Groupes musculaires <span style="text-transform:none">(vide = tous)</span></label>
+        <div class="grille-choix" id="choix-groupes-admin"></div>
+      </div>
+      <div class="champ" style="margin-top:14px">
+        <label>Matériel <span style="text-transform:none">(vide = tous)</span></label>
+        <div class="grille-choix" id="choix-materiel-admin"></div>
+      </div>
+
+      <button id="btn-tout-supprimer" class="btn-danger">🗑️ Tout supprimer</button>
       <p id="msg-suppr-tout" class="msg hidden"></p>
       <hr class="sep">
       <div id="liste-admin">
@@ -50,6 +117,7 @@
     import { Exercice, GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { ExerciceService } from './services/ExerciceService.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
+    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
 
     const btnLogout = document.getElementById('btn-logout');
 
@@ -83,6 +151,54 @@
     const btnExporter = document.getElementById('btn-exporter');
 
     let exercicesActuels = [];
+
+    // ── Filtres de la liste (mêmes filtres habituels que exercices.html) ──
+    const rechercheAdmin = document.getElementById('recherche-admin');
+    const choixGroupesAdmin = document.getElementById('choix-groupes-admin');
+    const choixMaterielAdmin = document.getElementById('choix-materiel-admin');
+
+    function creerChoixAdmin(conteneur, valeurs, avecIcone = false) {
+      valeurs.forEach(valeur => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'choix';
+        el.innerHTML = (avecIcone ? iconeGroupeHtml(valeur, 18) : '') + `<span>${LIBELLES[valeur] || valeur}</span>`;
+        el.dataset.valeur = valeur;
+        el.addEventListener('click', () => { el.classList.toggle('actif'); filtrerEtAfficherListe(); });
+        conteneur.appendChild(el);
+      });
+    }
+    creerChoixAdmin(choixGroupesAdmin, GROUPES_MUSCULAIRES, true);
+    creerChoixAdmin(choixMaterielAdmin, MATERIEL_DISPONIBLE);
+
+    function valeursActivesAdmin(conteneur) {
+      return [...conteneur.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur);
+    }
+
+    function normaliserAdmin(texte) {
+      return (texte || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+
+    rechercheAdmin.addEventListener('input', filtrerEtAfficherListe);
+
+    function filtrerEtAfficherListe() {
+      const terme = normaliserAdmin(rechercheAdmin.value.trim());
+      const groupes = valeursActivesAdmin(choixGroupesAdmin);
+      const materiels = valeursActivesAdmin(choixMaterielAdmin);
+
+      const filtres = exercicesActuels.filter(ex => {
+        if (terme && !normaliserAdmin(ex.nom).includes(terme) && !normaliserAdmin(ex.groupeMusculaire).includes(terme)) return false;
+        if (groupes.length && !groupes.includes(ex.groupeMusculaire)) return false;
+        if (materiels.length && !(ex.materiel || []).some(m => materiels.includes(m))) return false;
+        return true;
+      });
+
+      compteExercices.textContent = filtres.length === exercicesActuels.length
+        ? `${exercicesActuels.length} exercice${exercicesActuels.length > 1 ? 's' : ''}`
+        : `${filtres.length} / ${exercicesActuels.length} exercice${exercicesActuels.length > 1 ? 's' : ''}`;
+
+      afficherListe(filtres);
+    }
 
     fichierInput.addEventListener('change', () => {
       const fichier = fichierInput.files[0];
@@ -145,12 +261,146 @@
       URL.revokeObjectURL(url);
     });
 
-    function afficherListe(exercices) {
-      exercicesActuels = exercices;
-      compteExercices.textContent = `${exercices.length} exercice${exercices.length > 1 ? 's' : ''}`;
+    // ── Formulaire d'ajout / modification manuelle d'un exercice ──
+    const titreFormExercice   = document.getElementById('titre-form-exercice');
+    const nomExerciceEl       = document.getElementById('nom-exercice');
+    const groupeExerciceEl    = document.getElementById('groupe-exercice');
+    const choixMaterielExercice = document.getElementById('choix-materiel-exercice');
+    const niveauExerciceEl    = document.getElementById('niveau-exercice');
+    const repsExerciceEl      = document.getElementById('reps-exercice');
+    const dureeExerciceEl     = document.getElementById('duree-exercice');
+    const descriptionExerciceEl = document.getElementById('description-exercice');
+    const instructionsExerciceEl = document.getElementById('instructions-exercice');
+    const btnEnregistrerExercice = document.getElementById('btn-enregistrer-exercice');
+    const btnAnnulerEditionExercice = document.getElementById('btn-annuler-edition-exercice');
+    const msgFormExercice = document.getElementById('msg-form-exercice');
+    const descriptionIAExercice = document.getElementById('description-ia-exercice');
+    const btnGenererIAExercice = document.getElementById('btn-generer-ia-exercice');
 
+    groupeExerciceEl.innerHTML = GROUPES_MUSCULAIRES.map(g => `<option value="${g}">${LIBELLES[g] || g}</option>`).join('');
+
+    MATERIEL_DISPONIBLE.forEach(valeur => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'choix';
+      el.textContent = LIBELLES[valeur] || valeur;
+      el.dataset.valeur = valeur;
+      el.addEventListener('click', () => el.classList.toggle('actif'));
+      choixMaterielExercice.appendChild(el);
+    });
+
+    let idExerciceEnEdition = null;
+
+    function reinitialiserFormulaireExercice() {
+      idExerciceEnEdition = null;
+      titreFormExercice.textContent = '➕ Ajouter un exercice';
+      btnEnregistrerExercice.textContent = '💾 Enregistrer';
+      btnAnnulerEditionExercice.classList.add('hidden');
+      nomExerciceEl.value = '';
+      groupeExerciceEl.selectedIndex = 0;
+      choixMaterielExercice.querySelectorAll('.choix').forEach(el => el.classList.remove('actif'));
+      niveauExerciceEl.value = 'debutant';
+      repsExerciceEl.value = 10;
+      dureeExerciceEl.value = 30;
+      descriptionExerciceEl.value = '';
+      instructionsExerciceEl.value = '';
+      descriptionIAExercice.value = '';
+    }
+
+    function remplirFormulaireExercice(ex) {
+      nomExerciceEl.value = ex.nom || '';
+      groupeExerciceEl.value = ex.groupeMusculaire || '';
+      choixMaterielExercice.querySelectorAll('.choix').forEach(el => {
+        el.classList.toggle('actif', (ex.materiel || []).includes(el.dataset.valeur));
+      });
+      niveauExerciceEl.value = ex.niveau || 'debutant';
+      repsExerciceEl.value = ex.valeurDefautRepetitions ?? 10;
+      dureeExerciceEl.value = ex.valeurDefautDuree ?? 30;
+      descriptionExerciceEl.value = ex.description || '';
+      instructionsExerciceEl.value = ex.instructions || '';
+    }
+
+    function entrerEnEditionExercice(ex) {
+      idExerciceEnEdition = ex.id;
+      titreFormExercice.textContent = `✏️ Modifier « ${ex.nom} »`;
+      btnEnregistrerExercice.textContent = '💾 Mettre à jour';
+      btnAnnulerEditionExercice.classList.remove('hidden');
+      remplirFormulaireExercice(ex);
+      titreFormExercice.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    btnAnnulerEditionExercice.addEventListener('click', reinitialiserFormulaireExercice);
+
+    btnEnregistrerExercice.addEventListener('click', async () => {
+      const nom = nomExerciceEl.value.trim();
+      if (!nom) {
+        afficherMsg(msgFormExercice, '❌ Le nom est requis.', true);
+        return;
+      }
+
+      const exercice = new Exercice({
+        nom,
+        groupeMusculaire: groupeExerciceEl.value,
+        materiel: [...choixMaterielExercice.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur),
+        niveau: niveauExerciceEl.value,
+        valeurDefautRepetitions: Math.max(1, parseInt(repsExerciceEl.value, 10) || 10),
+        valeurDefautDuree: Math.max(1, parseInt(dureeExerciceEl.value, 10) || 30),
+        description: descriptionExerciceEl.value.trim(),
+        instructions: instructionsExerciceEl.value.trim()
+      });
+
+      btnEnregistrerExercice.disabled = true;
+      try {
+        if (idExerciceEnEdition) {
+          await ExerciceService.mettreAJour(idExerciceEnEdition, exercice);
+          afficherMsg(msgFormExercice, `✅ « ${nom} » mis à jour.`);
+        } else {
+          await ExerciceService.creer(exercice);
+          afficherMsg(msgFormExercice, `✅ « ${nom} » ajouté à la bibliothèque.`);
+        }
+        reinitialiserFormulaireExercice();
+      } catch (err) {
+        afficherMsg(msgFormExercice, `❌ ${err.message}`, true);
+      } finally {
+        btnEnregistrerExercice.disabled = false;
+      }
+    });
+
+    btnGenererIAExercice.addEventListener('click', async () => {
+      const description = descriptionIAExercice.value.trim();
+      if (!description) {
+        afficherMsg(msgFormExercice, "❌ Décris l'exercice avant de lancer l'IA.", true);
+        return;
+      }
+
+      btnGenererIAExercice.disabled = true;
+      btnGenererIAExercice.textContent = '✨ Analyse en cours...';
+      try {
+        // Import dynamique : un gemini-config.js absent (pas encore configuré,
+        // voir gemini-config.example.js) ne doit pas casser le reste du formulaire.
+        let GeminiService;
+        try {
+          ({ GeminiService } = await import('./services/GeminiService.js'));
+        } catch {
+          throw new Error("IA non configurée : crée public/gemini-config.js (voir gemini-config.example.js).");
+        }
+
+        const exercice = await GeminiService.interpreterExercice(description);
+        remplirFormulaireExercice(exercice);
+        afficherMsg(msgFormExercice, '✅ Fiche pré-remplie, relis-la avant d\'enregistrer.');
+      } catch (err) {
+        afficherMsg(msgFormExercice, `❌ ${err.message}`, true);
+      } finally {
+        btnGenererIAExercice.disabled = false;
+        btnGenererIAExercice.textContent = "✨ Pré-remplir avec l'IA";
+      }
+    });
+
+    function afficherListe(exercices) {
       if (exercices.length === 0) {
-        listeAdmin.innerHTML = '<p class="vide">Aucun exercice importé.</p>';
+        listeAdmin.innerHTML = exercicesActuels.length === 0
+          ? '<p class="vide">Aucun exercice importé.</p>'
+          : '<p class="vide">Aucun résultat pour ces filtres.</p>';
         return;
       }
 
@@ -163,9 +413,11 @@
             <div class="bloc-nom">${ex.nom}</div>
             <div class="bloc-detail">${ex.groupeMusculaire} · ${ex.niveau}</div>
           </div>
-          <button class="btn-danger" data-id="${ex.id}">🗑️</button>
+          <button class="btn-secondaire btn-modifier-exercice" title="Modifier">✏️</button>
+          <button class="btn-danger btn-supprimer-exercice" title="Supprimer">🗑️</button>
         `;
-        row.querySelector('button').addEventListener('click', async () => {
+        row.querySelector('.btn-modifier-exercice').addEventListener('click', () => entrerEnEditionExercice(ex));
+        row.querySelector('.btn-supprimer-exercice').addEventListener('click', async () => {
           if (!confirm(`Supprimer « ${ex.nom} » ?`)) return;
           await ExerciceService.supprimer(ex.id);
         });
@@ -175,7 +427,10 @@
 
     activerClicDetailExercice(listeAdmin, id => exercicesActuels.find(ex => ex.id === id));
 
-    ExerciceService.ecouterTous(afficherListe);
+    ExerciceService.ecouterTous(exercices => {
+      exercicesActuels = exercices;
+      filtrerEtAfficherListe();
+    });
   </script>
 
 </body>

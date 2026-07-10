@@ -4,8 +4,8 @@ import { SECONDES_PAR_REPETITION } from './constantes.js';
 const RANG_NIVEAU = { debutant: 1, intermediaire: 2, avance: 3 };
 
 export const SERIES_PAR_EXERCICE     = 3;
-export const REPOS_ENTRE_SERIES      = 30; // secondes
-const REPOS_ENTRE_EXERCICES_DEFAUT   = 60; // secondes, si non fourni dans criteres
+export const REPOS_ENTRE_SERIES      = 30; // secondes, repli si criteres.reposEntreSeriesSecondes absent
+const REPOS_ENTRE_EXERCICES_DEFAUT   = 60; // secondes, repli si criteres.reposEntreExercicesSecondes absent
 const MAX_BLOCS                      = 30; // garde-fou anti-boucle infinie
 
 function dureeEffortSecondes(bloc) {
@@ -60,7 +60,8 @@ export function filtrerExercices(exercices, criteres) {
 // Génère une séance en piochant (sans répétition tant que possible) dans la
 // bibliothèque filtrée, jusqu'à atteindre la durée cible demandée.
 // criteres : { dureeMinutes, groupesMusculaires: [], materielDisponible: [], niveau,
-//              reposEntreExercicesSecondes?, preferenceType?, enchainementAutomatique? }
+//              reposEntreSeriesSecondes?, reposEntreExercicesSecondes?, preferenceType?,
+//              enchainementAutomatique? }
 export function genererSeance(exercicesDisponibles, criteres) {
   const exercicesEligibles = filtrerExercices(exercicesDisponibles, criteres);
   if (exercicesEligibles.length === 0) {
@@ -68,6 +69,7 @@ export function genererSeance(exercicesDisponibles, criteres) {
   }
 
   const type = criteres.enchainementAutomatique ? 'duree' : (criteres.preferenceType || 'repetitions');
+  const reposSecondes = criteres.reposEntreSeriesSecondes ?? REPOS_ENTRE_SERIES;
   const reposApresSecondes = criteres.reposEntreExercicesSecondes ?? REPOS_ENTRE_EXERCICES_DEFAUT;
 
   const pool = melanger(exercicesEligibles);
@@ -85,7 +87,7 @@ export function genererSeance(exercicesDisponibles, criteres) {
       series: SERIES_PAR_EXERCICE,
       valeur: type === 'duree' ? exercice.valeurDefautDuree : exercice.valeurDefautRepetitions,
       type,
-      reposSecondes: REPOS_ENTRE_SERIES,
+      reposSecondes,
       reposApresSecondes
     });
   }

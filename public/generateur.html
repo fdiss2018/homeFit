@@ -17,6 +17,14 @@
   <main>
     <a href="index.html" class="lien-retour">← Retour</a>
 
+    <div class="carte" id="carte-ia">
+      <p class="carte-titre">✨ Décris ta séance</p>
+      <p class="carte-desc">Ex. « 20 minutes, jambes et abdos, niveau débutant, pas de matériel »</p>
+      <textarea id="description-ia" class="input" rows="3" placeholder="Décris la séance que tu veux..."></textarea>
+      <button id="btn-generer-ia" class="btn-secondaire btn-large" type="button" style="margin-top:10px">✨ Configurer avec l'IA</button>
+      <p id="msg-ia" class="msg hidden"></p>
+    </div>
+
     <div class="carte" id="carte-formulaire">
       <div class="champ">
         <label for="duree">Durée souhaitée</label>
@@ -49,8 +57,24 @@
       </div>
 
       <div class="champ">
-        <label for="repos-exercices">Repos entre exercices</label>
+        <label for="repos-series">Repos entre séries <span style="text-transform:none">(même exercice)</span></label>
+        <select id="repos-series" class="input">
+          <option value="0">0 seconde</option>
+          <option value="5">5 secondes</option>
+          <option value="10">10 secondes</option>
+          <option value="15">15 secondes</option>
+          <option value="30" selected>30 secondes</option>
+          <option value="60">60 secondes</option>
+          <option value="90">90 secondes</option>
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="repos-exercices">Repos entre exercices <span style="text-transform:none">(en changeant d'exercice)</span></label>
         <select id="repos-exercices" class="input">
+          <option value="0">0 seconde</option>
+          <option value="5">5 secondes</option>
+          <option value="10">10 secondes</option>
           <option value="15">15 secondes</option>
           <option value="30">30 secondes</option>
           <option value="60" selected>60 secondes</option>
@@ -104,7 +128,7 @@
   <script type="module">
     import { ExerciceService } from './services/ExerciceService.js';
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
-    import { genererSeance, calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE, REPOS_ENTRE_SERIES } from './utils/GenerateurSeance.js';
+    import { genererSeance, calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE } from './utils/GenerateurSeance.js';
     import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
     import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
@@ -231,7 +255,11 @@
             <div class="bloc-detail">
               <input type="number" min="1" class="input input-bloc" data-index="${i}" data-champ="series" value="${bloc.series}"> séries ×
               <input type="number" min="1" class="input input-bloc" data-index="${i}" data-champ="valeur" value="${bloc.valeur}">
-              ${unite} — repos ${bloc.reposApresSecondes}s entre exercices
+              ${unite}
+              <br>
+              Repos :
+              <input type="number" min="0" class="input input-bloc" data-index="${i}" data-champ="reposSecondes" value="${bloc.reposSecondes}">s entre séries ·
+              <input type="number" min="0" class="input input-bloc" data-index="${i}" data-champ="reposApresSecondes" value="${bloc.reposApresSecondes}">s entre exercices
             </div>
           </div>
           <div class="bloc-reordonner">
@@ -244,11 +272,14 @@
       });
     }
 
+    const CHAMPS_BLOC_MIN_ZERO = new Set(['reposSecondes', 'reposApresSecondes']);
+
     listeBlocs.addEventListener('input', e => {
       const input = e.target;
       if (!input.classList.contains('input-bloc')) return;
       const index = parseInt(input.dataset.index, 10);
-      const valeur = Math.max(1, parseInt(input.value, 10) || 1);
+      const min = CHAMPS_BLOC_MIN_ZERO.has(input.dataset.champ) ? 0 : 1;
+      const valeur = Math.max(min, parseInt(input.value, 10) || min);
       seanceCourante.blocs[index][input.dataset.champ] = valeur;
       seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
       rafraichirResume();
@@ -296,6 +327,7 @@
       const type = checkboxEnchainement.checked
         ? 'duree'
         : (choixPreferenceType.querySelector('.choix.actif')?.dataset.valeur || 'repetitions');
+      const reposSecondes = parseInt(document.getElementById('repos-series').value, 10);
       const reposApresSecondes = parseInt(document.getElementById('repos-exercices').value, 10);
 
       seanceCourante.blocs.push({
@@ -303,7 +335,7 @@
         series: SERIES_PAR_EXERCICE,
         valeur: type === 'duree' ? exercice.valeurDefautDuree : exercice.valeurDefautRepetitions,
         type,
-        reposSecondes: REPOS_ENTRE_SERIES,
+        reposSecondes,
         reposApresSecondes
       });
       seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
@@ -323,6 +355,7 @@
         groupesMusculaires: valeursActives(choixGroupes),
         materielDisponible: valeursActives(choixMateriel),
         niveau: document.getElementById('niveau').value,
+        reposEntreSeriesSecondes: parseInt(document.getElementById('repos-series').value, 10),
         reposEntreExercicesSecondes: parseInt(document.getElementById('repos-exercices').value, 10),
         preferenceType: choixPreferenceType.querySelector('.choix.actif')?.dataset.valeur || 'repetitions',
         enchainementAutomatique: checkboxEnchainement.checked
@@ -354,6 +387,63 @@
         msgResultat.className = 'msg msg-erreur';
         msgResultat.classList.remove('hidden');
         btnEnregistrer.disabled = false;
+      }
+    });
+
+    const descriptionIA = document.getElementById('description-ia');
+    const btnGenererIA  = document.getElementById('btn-generer-ia');
+    const msgIA         = document.getElementById('msg-ia');
+
+    function appliquerCriteresIA(criteres) {
+      document.getElementById('duree').value = String(criteres.dureeMinutes);
+      document.getElementById('niveau').value = criteres.niveau;
+      document.getElementById('repos-exercices').value = String(criteres.reposEntreExercicesSecondes);
+
+      choixGroupes.querySelectorAll('.choix').forEach(el => {
+        el.classList.toggle('actif', criteres.groupesMusculaires.includes(el.dataset.valeur));
+      });
+      choixMateriel.querySelectorAll('.choix').forEach(el => {
+        el.classList.toggle('actif', criteres.materielDisponible.includes(el.dataset.valeur));
+      });
+      choixPreferenceType.querySelectorAll('.choix').forEach(el => {
+        el.classList.toggle('actif', el.dataset.valeur === criteres.preferenceType);
+      });
+      checkboxEnchainement.checked = criteres.enchainementAutomatique;
+      champPreferenceType.classList.toggle('desactive', criteres.enchainementAutomatique);
+    }
+
+    btnGenererIA.addEventListener('click', async () => {
+      const description = descriptionIA.value.trim();
+      msgIA.classList.add('hidden');
+      if (!description) {
+        msgIA.textContent = "Décris la séance que tu souhaites avant de lancer l'IA.";
+        msgIA.className = 'msg msg-erreur';
+        msgIA.classList.remove('hidden');
+        return;
+      }
+
+      btnGenererIA.disabled = true;
+      btnGenererIA.textContent = '✨ Analyse en cours...';
+      try {
+        // Import dynamique : un gemini-config.js absent (pas encore configuré,
+        // voir gemini-config.example.js) ne doit pas casser le reste de la page.
+        let GeminiService;
+        try {
+          ({ GeminiService } = await import('./services/GeminiService.js'));
+        } catch {
+          throw new Error("IA non configurée : crée public/gemini-config.js (voir gemini-config.example.js).");
+        }
+
+        const criteres = await GeminiService.interpreterDemande(description);
+        appliquerCriteresIA(criteres);
+        await genererEtAfficher();
+      } catch (err) {
+        msgIA.textContent = `❌ ${err.message}`;
+        msgIA.className = 'msg msg-erreur';
+        msgIA.classList.remove('hidden');
+      } finally {
+        btnGenererIA.disabled = false;
+        btnGenererIA.textContent = "✨ Configurer avec l'IA";
       }
     });
 

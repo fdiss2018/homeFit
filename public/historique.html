@@ -17,6 +17,17 @@
   <main>
     <a href="index.html" class="lien-retour">← Retour</a>
 
+    <div class="carte">
+      <p class="carte-titre">📤 Sauvegarde</p>
+      <p class="carte-desc">Exporte tes séances enregistrées dans un fichier JSON, ou réimporte une sauvegarde.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <button id="btn-exporter-historique" class="btn-secondaire" type="button">⬇️ Exporter (JSON)</button>
+        <label for="fichier-historique" class="btn-secondaire">📂 Importer (.json)</label>
+        <input type="file" id="fichier-historique" accept=".json" class="hidden">
+      </div>
+      <p id="msg-historique-io" class="msg hidden"></p>
+    </div>
+
     <p id="msg-anonyme" class="msg msg-erreur hidden">
       Tu n'es pas connecté(e) : cet historique n'est disponible que sur cet appareil.
       <a href="login.html">Se connecter</a> pour le retrouver partout.
@@ -39,12 +50,9 @@
 
     const listeEl = document.getElementById('liste-seances');
     const msgAnonyme = document.getElementById('msg-anonyme');
-
-    function formatDate(iso) {
-      const d = new Date(iso);
-      if (isNaN(d)) return '';
-      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
+    const btnExporterHistorique = document.getElementById('btn-exporter-historique');
+    const fichierHistoriqueInput = document.getElementById('fichier-historique');
+    const msgHistoriqueIO = document.getElementById('msg-historique-io');
 
     let seancesChargees = [];
     let tousLesExercices = [];
@@ -52,6 +60,72 @@
     let idEnEdition = null;
     let seanceEnEdition = null;
     let filtreGroupeEdition = '';
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function afficherMsgHistorique(texte, erreur = false) {
+      msgHistoriqueIO.textContent = texte;
+      msgHistoriqueIO.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
+      msgHistoriqueIO.classList.remove('hidden');
+      setTimeout(() => msgHistoriqueIO.classList.add('hidden'), 5000);
+    }
+
+    btnExporterHistorique.addEventListener('click', () => {
+      if (seancesChargees.length === 0) {
+        afficherMsgHistorique('Aucune séance à exporter.', true);
+        return;
+      }
+      const donnees = { seances: seancesChargees.map(s => s.toFirestore()) };
+      const blob = new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const lien = document.createElement('a');
+      lien.href = url;
+      lien.download = 'historique-export.json';
+      lien.click();
+      URL.revokeObjectURL(url);
+    });
+
+    fichierHistoriqueInput.addEventListener('change', () => {
+      const fichier = fichierHistoriqueInput.files[0];
+      if (!fichier) return;
+
+      const reader = new FileReader();
+      reader.onload = async e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const items = Array.isArray(data) ? data : (data.seances || []);
+          if (items.length === 0) throw new Error('Aucune séance trouvée dans le fichier.');
+
+          let ok = 0, ko = 0;
+          for (const item of items) {
+            if (!Array.isArray(item.blocs) || item.blocs.length === 0) {
+              ko++;
+              console.warn('Séance ignorée (aucun bloc valide) :', item);
+              continue;
+            }
+            try {
+              const seance = Seance.fromFirestore(null, item);
+              seance.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seance.blocs);
+              await HistoriqueSeanceService.ajouter(seance);
+              ok++;
+            } catch { ko++; }
+          }
+
+          afficherMsgHistorique(ko === 0
+            ? `✅ ${ok} séance${ok > 1 ? 's' : ''} importée${ok > 1 ? 's' : ''}.`
+            : `⚠️ ${ok} importée(s), ${ko} en échec.`, ko > 0);
+          await charger();
+        } catch (err) {
+          afficherMsgHistorique(`❌ ${err.message}`, true);
+        }
+        fichierHistoriqueInput.value = '';
+      };
+      reader.readAsText(fichier);
+    });
 
     async function chargerExercices() {
       tousLesExercices = await ExerciceService.listerTous();
@@ -130,7 +204,11 @@
               <div class="bloc-detail">
                 <input type="number" min="1" class="input input-bloc-edition" data-index="${i}" data-champ="series" value="${bloc.series}"> séries ×
                 <input type="number" min="1" class="input input-bloc-edition" data-index="${i}" data-champ="valeur" value="${bloc.valeur}">
-                ${unite} — repos ${bloc.reposApresSecondes}s entre exercices
+                ${unite}
+                <br>
+                Repos :
+                <input type="number" min="0" class="input input-bloc-edition" data-index="${i}" data-champ="reposSecondes" value="${bloc.reposSecondes}">s entre séries ·
+                <input type="number" min="0" class="input input-bloc-edition" data-index="${i}" data-champ="reposApresSecondes" value="${bloc.reposApresSecondes}">s entre exercices
               </div>
             </div>
             <div class="bloc-reordonner">
@@ -176,11 +254,14 @@
       renderListe();
     }
 
+    const CHAMPS_BLOC_MIN_ZERO = new Set(['reposSecondes', 'reposApresSecondes']);
+
     listeEl.addEventListener('input', e => {
       const input = e.target;
       if (!input.classList.contains('input-bloc-edition')) return;
       const index = parseInt(input.dataset.index, 10);
-      const valeur = Math.max(1, parseInt(input.value, 10) || 1);
+      const min = CHAMPS_BLOC_MIN_ZERO.has(input.dataset.champ) ? 0 : 1;
+      const valeur = Math.max(min, parseInt(input.value, 10) || min);
       seanceEnEdition.blocs[index][input.dataset.champ] = valeur;
       const resumeEl = input.closest('.carte')?.querySelector('.resume-edition');
       if (resumeEl) {
@@ -239,7 +320,7 @@
             series: SERIES_PAR_EXERCICE,
             valeur: type === 'duree' ? exercice.valeurDefautDuree : exercice.valeurDefautRepetitions,
             type,
-            reposSecondes: REPOS_ENTRE_SERIES,
+            reposSecondes: criteresSeance.reposEntreSeriesSecondes ?? REPOS_ENTRE_SERIES,
             reposApresSecondes: criteresSeance.reposEntreExercicesSecondes ?? 60
           });
           renderListe();

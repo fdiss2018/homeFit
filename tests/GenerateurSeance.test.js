@@ -141,6 +141,12 @@ describe('genererSeance', () => {
     const seance = genererSeance(exercices, { dureeMinutes: 10, niveau: 'debutant', reposEntreExercicesSecondes: 90 });
     expect(seance.blocs.every(b => b.reposApresSecondes === 90)).toBe(true);
   });
+
+  it('reporte le repos entre séries demandé sur chaque bloc', () => {
+    const exercices = [creerExercice()];
+    const seance = genererSeance(exercices, { dureeMinutes: 10, niveau: 'debutant', reposEntreSeriesSecondes: 15 });
+    expect(seance.blocs.every(b => b.reposSecondes === 15)).toBe(true);
+  });
 });
 
 describe('calculerDureeEstimeeMinutes', () => {

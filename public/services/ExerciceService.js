@@ -1,6 +1,6 @@
 import { db } from '../firebase-config.js';
 import {
-  collection, doc, getDocs, addDoc, deleteDoc, onSnapshot
+  collection, doc, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot
 } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { Exercice } from '../models/Exercice.js';
 
@@ -16,6 +16,10 @@ export const ExerciceService = {
   async listerTous() {
     const snap = await getDocs(collection(db, COLLECTION));
     return snap.docs.map(d => Exercice.fromFirestore(d.id, d.data()));
+  },
+
+  async mettreAJour(id, exercice) {
+    await updateDoc(doc(db, COLLECTION, id), exercice.toFirestore());
   },
 
   async supprimer(id) {

@@ -11,6 +11,9 @@ firebase-debug.*.log*
 # Firebase config — clés de projet, à ne pas committer (voir firebase-config.example.js)
 public/firebase-config.js
 
+# Clé API Gemini — à ne pas committer (voir gemini-config.example.js)
+public/gemini-config.js
+
 # Claude Code local settings
 .claude/
 
