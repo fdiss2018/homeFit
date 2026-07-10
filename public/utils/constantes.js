@@ -16,6 +16,9 @@ export const LIBELLES = {
   halteres: 'Haltères', tapis: 'Tapis', banc: 'Banc', elastique: 'Élastique', kettlebell: 'Kettlebell'
 };
 
+// Libellés d'affichage des niveaux (exercices.html, ModaleExercice.js).
+export const NIVEAU_LIBELLE = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+
 // Pictogrammes anatomiques par groupe musculaire (public/images/groupes/). cardio et full-body
 // n'ont pas de muscle unique à représenter : repli sur un emoji.
 const CHEMIN_ICONES = {

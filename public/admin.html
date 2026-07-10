@@ -35,6 +35,7 @@
         <span id="compte-exercices" class="carte-desc" style="margin:0"></span>
       </div>
       <button id="btn-tout-supprimer" class="btn-danger" style="margin-top:10px">🗑️ Tout supprimer</button>
+      <p id="msg-suppr-tout" class="msg hidden"></p>
       <hr class="sep">
       <div id="liste-admin">
         <p class="chargement">Chargement...</p>
@@ -48,6 +49,7 @@
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
     import { Exercice, GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { ExerciceService } from './services/ExerciceService.js';
+    import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     const btnLogout = document.getElementById('btn-logout');
 
@@ -77,6 +79,7 @@
     const listeAdmin = document.getElementById('liste-admin');
     const compteExercices = document.getElementById('compte-exercices');
     const btnToutSupprimer = document.getElementById('btn-tout-supprimer');
+    const msgSupprTout = document.getElementById('msg-suppr-tout');
     const btnExporter = document.getElementById('btn-exporter');
 
     let exercicesActuels = [];
@@ -120,8 +123,15 @@
       if (exercicesActuels.length === 0) return;
       if (!confirm(`Supprimer définitivement les ${exercicesActuels.length} exercices de la bibliothèque ? Cette action est irréversible.`)) return;
       btnToutSupprimer.disabled = true;
-      await Promise.all(exercicesActuels.map(ex => ExerciceService.supprimer(ex.id)));
+
+      const resultats = await Promise.allSettled(exercicesActuels.map(ex => ExerciceService.supprimer(ex.id)));
+      const ko = resultats.filter(r => r.status === 'rejected').length;
+      const ok = resultats.length - ko;
+
       btnToutSupprimer.disabled = false;
+      afficherMsg(msgSupprTout, ko === 0
+        ? `✅ ${ok} exercice${ok > 1 ? 's' : ''} supprimé${ok > 1 ? 's' : ''}.`
+        : `⚠️ ${ok} supprimé(s), ${ko} en échec.`, ko > 0);
     });
 
     btnExporter.addEventListener('click', () => {
@@ -149,7 +159,7 @@
         const row = document.createElement('div');
         row.className = 'bloc-exercice';
         row.innerHTML = `
-          <div class="bloc-info">
+          <div class="bloc-info ouvre-detail-exercice" data-id="${ex.id}">
             <div class="bloc-nom">${ex.nom}</div>
             <div class="bloc-detail">${ex.groupeMusculaire} · ${ex.niveau}</div>
           </div>
@@ -162,6 +172,8 @@
         listeAdmin.appendChild(row);
       });
     }
+
+    activerClicDetailExercice(listeAdmin, id => exercicesActuels.find(ex => ex.id === id));
 
     ExerciceService.ecouterTous(afficherListe);
   </script>

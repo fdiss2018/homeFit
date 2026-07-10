@@ -252,6 +252,29 @@ label {
 
 .bloc-info { flex: 1; min-width: 0; }
 .bloc-nom { font-weight: 700; font-size: 0.95rem; }
+
+/* ── Réordonnancement des blocs (▲/▼) ── */
+.bloc-reordonner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-reordonner {
+  width: 26px; height: 22px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--bordure);
+  background: var(--bg-elevee);
+  color: var(--texte-dim);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-reordonner:hover:not(:disabled) { border-color: var(--accent); color: var(--texte); }
+.btn-reordonner:disabled { opacity: 0.25; cursor: not-allowed; }
 .bloc-detail { color: var(--texte-dim); font-size: 0.82rem; margin-top: 2px; }
 
 .input-bloc { width: 56px; display: inline-block; text-align: center; padding: 4px 6px; margin: 0 4px; }
@@ -424,3 +447,60 @@ hr.sep {
   display: flex; align-items: center; justify-content: center;
 }
 .btn-ajout-ligne:hover { opacity: 0.9; }
+
+/* ── Modale de détail d'exercice ── */
+.modale-fond {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modale-contenu {
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modale-fermer {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--bordure);
+  background: var(--bg-elevee);
+  color: var(--texte-dim);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.modale-fermer:hover { color: var(--texte); border-color: var(--accent); }
+
+/* ── Nom d'exercice cliquable (ouvre la modale de détail) ── */
+/* Marqueur partagé : tout élément listant un exercice cliquable pour voir son
+   détail (voir utils/ModaleExercice.js, activerClicDetailExercice). */
+.ouvre-detail-exercice { cursor: pointer; }
+.ouvre-detail-exercice:hover { opacity: 0.85; }
+
+/* ── Puces d'exercices cliquables (historique.html) ── */
+.chip-exercice {
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 2px 4px 2px 0;
+  border-radius: 14px;
+  border: 1px solid var(--bordure);
+  background: var(--bg-elevee);
+  color: var(--texte-dim);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.chip-exercice:hover { border-color: var(--accent); color: var(--texte); }

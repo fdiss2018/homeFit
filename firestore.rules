@@ -3,12 +3,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Bibliothèque d'exercices : lecture publique, écriture réservée à l'admin
-    // (la vérification du rôle admin se fait côté client via auth-config.js ;
-    //  à terme, remplacer par une custom claim Firebase Auth pour sécuriser l'écriture)
+    // Bibliothèque d'exercices : lecture publique, écriture réservée à l'admin.
+    // L'email doit rester synchronisé avec ADMIN_EMAIL dans public/auth-config.js
+    // (à terme, remplacer par une custom claim Firebase Auth pour éviter la duplication).
     match /exercices/{exerciceId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'fdiss093@gmail.com';
     }
 
     // Historique des séances : chaque utilisateur ne lit/écrit que ses propres données

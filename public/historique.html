@@ -30,6 +30,12 @@
   <script type="module">
     import { AuthService } from './services/AuthService.js';
     import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+    import { ExerciceService } from './services/ExerciceService.js';
+    import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
+    import { Seance } from './models/Seance.js';
+    import { calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE, REPOS_ENTRE_SERIES } from './utils/GenerateurSeance.js';
+    import { LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
+    import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     const listeEl = document.getElementById('liste-seances');
     const msgAnonyme = document.getElementById('msg-anonyme');
@@ -41,10 +47,23 @@
     }
 
     let seancesChargees = [];
+    let tousLesExercices = [];
+    let exercicesParId = new Map();
+    let idEnEdition = null;
+    let seanceEnEdition = null;
+    let filtreGroupeEdition = '';
+
+    async function chargerExercices() {
+      tousLesExercices = await ExerciceService.listerTous();
+      exercicesParId = new Map(tousLesExercices.map(ex => [ex.id, ex]));
+    }
 
     async function charger() {
       seancesChargees = await HistoriqueSeanceService.lister();
+      renderListe();
+    }
 
+    function renderListe() {
       if (seancesChargees.length === 0) {
         listeEl.innerHTML = '<p class="vide">Aucune séance enregistrée pour le moment.</p>';
         return;
@@ -52,26 +71,210 @@
 
       listeEl.innerHTML = '';
       seancesChargees.forEach(seance => {
-        const nomsExercices = seance.blocs.map(b => b.exercice.nom).join(', ');
-        const div = document.createElement('div');
-        div.className = 'carte';
-        div.dataset.id = seance.id;
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:start; gap:10px">
-            <p class="carte-titre">${seance.nom || formatDate(seance.date)}</p>
-            <span class="badge badge-vert">~${seance.dureeEstimeeMinutes} min</span>
-          </div>
-          <p class="carte-desc">${seance.nom ? formatDate(seance.date) + ' — ' : ''}${seance.blocs.length} exercice${seance.blocs.length > 1 ? 's' : ''} — ${nomsExercices}</p>
-          <div style="display:flex; gap:10px">
-            <button class="btn-primaire btn-lancer" style="flex:1">▶ Lancer</button>
-            <button class="btn-danger btn-suppr-seance">🗑 Supprimer</button>
-          </div>
-        `;
-        listeEl.appendChild(div);
+        listeEl.appendChild(seance.id === idEnEdition ? construireCarteEdition() : construireCarteAffichage(seance));
       });
     }
 
+    function construireCarteAffichage(seance) {
+      const div = document.createElement('div');
+      div.className = 'carte';
+      div.dataset.id = seance.id;
+      const chips = seance.blocs
+        .map(b => `<button type="button" class="chip-exercice ouvre-detail-exercice" data-id="${b.exercice.id}">${b.exercice.nom}</button>`)
+        .join('');
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:10px">
+          <p class="carte-titre">${seance.nom || formatDate(seance.date)}</p>
+          <span class="badge badge-vert">~${seance.dureeEstimeeMinutes} min</span>
+        </div>
+        <p class="carte-desc">${seance.nom ? formatDate(seance.date) + ' — ' : ''}${seance.blocs.length} exercice${seance.blocs.length > 1 ? 's' : ''}</p>
+        <div style="margin-bottom:10px">${chips}</div>
+        <div style="display:flex; gap:8px">
+          <button class="btn-primaire btn-lancer" style="flex:1">▶ Lancer</button>
+          <button class="btn-secondaire btn-modifier-seance">✏️ Modifier</button>
+          <button class="btn-danger btn-suppr-seance">🗑</button>
+        </div>
+      `;
+      return div;
+    }
+
+    function construireCarteEdition() {
+      const div = document.createElement('div');
+      div.className = 'carte';
+      div.dataset.id = seanceEnEdition.id;
+
+      const optionsGroupes = '<option value="">Tous les groupes musculaires</option>' +
+        GROUPES_MUSCULAIRES.map(g => `<option value="${g}" ${g === filtreGroupeEdition ? 'selected' : ''}>${LIBELLES[g] || g}</option>`).join('');
+
+      const lignesAjout = tousLesExercices
+        .filter(ex => !filtreGroupeEdition || ex.groupeMusculaire === filtreGroupeEdition)
+        .sort((a, b) => a.nom.localeCompare(b.nom))
+        .map(ex => `
+          <div class="ligne-ajout-exercice" data-id="${ex.id}">
+            ${iconeGroupeHtml(ex.groupeMusculaire, 32)}
+            <div class="ligne-ajout-info ouvre-detail-exercice" data-id="${ex.id}">
+              <div class="ligne-ajout-nom">${ex.nom}</div>
+              ${ex.description ? `<div class="ligne-ajout-desc">${ex.description}</div>` : ''}
+            </div>
+            <button class="btn-ajout-ligne" type="button" title="Ajouter">➕</button>
+          </div>
+        `).join('') || '<p class="vide">Aucun exercice pour ce groupe.</p>';
+
+      const blocsHtml = seanceEnEdition.blocs.map((bloc, i) => {
+        const unite = bloc.type === 'duree' ? 's' : 'reps';
+        return `
+          <div class="bloc-exercice">
+            <div class="bloc-num">${i + 1}</div>
+            <div class="bloc-info">
+              <div class="bloc-nom ouvre-detail-exercice" data-id="${bloc.exercice.id}">${bloc.exercice.nom}</div>
+              <div class="bloc-detail">
+                <input type="number" min="1" class="input input-bloc-edition" data-index="${i}" data-champ="series" value="${bloc.series}"> séries ×
+                <input type="number" min="1" class="input input-bloc-edition" data-index="${i}" data-champ="valeur" value="${bloc.valeur}">
+                ${unite} — repos ${bloc.reposApresSecondes}s entre exercices
+              </div>
+            </div>
+            <div class="bloc-reordonner">
+              <button class="btn-reordonner btn-monter-edition" type="button" data-index="${i}" title="Monter" ${i === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn-reordonner btn-descendre-edition" type="button" data-index="${i}" title="Descendre" ${i === seanceEnEdition.blocs.length - 1 ? 'disabled' : ''}>▼</button>
+            </div>
+            <button class="btn-danger btn-suppr-bloc-edition" type="button" data-index="${i}">🗑</button>
+          </div>
+        `;
+      }).join('');
+
+      div.innerHTML = `
+        <div class="champ">
+          <label>Nom de la séance</label>
+          <input type="text" class="input input-nom-edition" value="${seanceEnEdition.nom || ''}" placeholder="Ex: Séance jambes du lundi">
+        </div>
+        <p class="carte-desc resume-edition">${seanceEnEdition.blocs.length} exercice${seanceEnEdition.blocs.length > 1 ? 's' : ''} · ~${calculerDureeEstimeeMinutes(seanceEnEdition.blocs)} min</p>
+        <div class="liste-blocs-edition">${blocsHtml}</div>
+        <div class="champ">
+          <label>Ajouter un exercice</label>
+          <select class="input select-groupe-edition" style="margin-bottom:8px">${optionsGroupes}</select>
+          <div class="liste-ajout">${lignesAjout}</div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:12px">
+          <button class="btn-primaire btn-enregistrer-edition" style="flex:1">💾 Enregistrer</button>
+          <button class="btn-secondaire btn-annuler-edition" style="flex:1">✖ Annuler</button>
+        </div>
+      `;
+      return div;
+    }
+
+    function entrerEnEdition(seance) {
+      idEnEdition = seance.id;
+      filtreGroupeEdition = '';
+      seanceEnEdition = new Seance({
+        id: seance.id,
+        date: seance.date,
+        nom: seance.nom,
+        criteres: seance.criteres,
+        blocs: seance.blocs.map(b => ({ ...b })),
+        dureeEstimeeMinutes: seance.dureeEstimeeMinutes
+      });
+      renderListe();
+    }
+
+    listeEl.addEventListener('input', e => {
+      const input = e.target;
+      if (!input.classList.contains('input-bloc-edition')) return;
+      const index = parseInt(input.dataset.index, 10);
+      const valeur = Math.max(1, parseInt(input.value, 10) || 1);
+      seanceEnEdition.blocs[index][input.dataset.champ] = valeur;
+      const resumeEl = input.closest('.carte')?.querySelector('.resume-edition');
+      if (resumeEl) {
+        const n = seanceEnEdition.blocs.length;
+        resumeEl.textContent = `${n} exercice${n > 1 ? 's' : ''} · ~${calculerDureeEstimeeMinutes(seanceEnEdition.blocs)} min`;
+      }
+    });
+
+    listeEl.addEventListener('change', e => {
+      if (e.target.classList.contains('select-groupe-edition')) {
+        filtreGroupeEdition = e.target.value;
+        renderListe();
+      }
+    });
+
+    activerClicDetailExercice(listeEl, id => exercicesParId.get(id));
+
+    function echangerBlocsEdition(index, autreIndex) {
+      const blocs = seanceEnEdition.blocs;
+      if (autreIndex < 0 || autreIndex >= blocs.length) return;
+      [blocs[index], blocs[autreIndex]] = [blocs[autreIndex], blocs[index]];
+      renderListe();
+    }
+
     listeEl.addEventListener('click', async e => {
+      const boutonSupprBloc = e.target.closest('.btn-suppr-bloc-edition');
+      if (boutonSupprBloc) {
+        seanceEnEdition.blocs.splice(parseInt(boutonSupprBloc.dataset.index, 10), 1);
+        renderListe();
+        return;
+      }
+
+      const boutonMonter = e.target.closest('.btn-monter-edition');
+      if (boutonMonter) {
+        const index = parseInt(boutonMonter.dataset.index, 10);
+        echangerBlocsEdition(index, index - 1);
+        return;
+      }
+
+      const boutonDescendre = e.target.closest('.btn-descendre-edition');
+      if (boutonDescendre) {
+        const index = parseInt(boutonDescendre.dataset.index, 10);
+        echangerBlocsEdition(index, index + 1);
+        return;
+      }
+
+      const boutonAjoutLigne = e.target.closest('.btn-ajout-ligne');
+      if (boutonAjoutLigne) {
+        const idExercice = boutonAjoutLigne.closest('.ligne-ajout-exercice').dataset.id;
+        const exercice = exercicesParId.get(idExercice);
+        if (exercice && seanceEnEdition) {
+          const criteresSeance = seanceEnEdition.criteres || {};
+          const type = criteresSeance.enchainementAutomatique ? 'duree' : (criteresSeance.preferenceType || 'repetitions');
+          seanceEnEdition.blocs.push({
+            exercice,
+            series: SERIES_PAR_EXERCICE,
+            valeur: type === 'duree' ? exercice.valeurDefautDuree : exercice.valeurDefautRepetitions,
+            type,
+            reposSecondes: REPOS_ENTRE_SERIES,
+            reposApresSecondes: criteresSeance.reposEntreExercicesSecondes ?? 60
+          });
+          renderListe();
+        }
+        return;
+      }
+
+      const boutonEnregistrer = e.target.closest('.btn-enregistrer-edition');
+      if (boutonEnregistrer) {
+        const carte = boutonEnregistrer.closest('.carte');
+        seanceEnEdition.nom = carte.querySelector('.input-nom-edition').value.trim() || null;
+        seanceEnEdition.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceEnEdition.blocs);
+        await HistoriqueSeanceService.mettreAJour(idEnEdition, seanceEnEdition);
+        idEnEdition = null;
+        seanceEnEdition = null;
+        await charger();
+        return;
+      }
+
+      const boutonAnnuler = e.target.closest('.btn-annuler-edition');
+      if (boutonAnnuler) {
+        idEnEdition = null;
+        seanceEnEdition = null;
+        renderListe();
+        return;
+      }
+
+      const boutonModifier = e.target.closest('.btn-modifier-seance');
+      if (boutonModifier) {
+        const id = boutonModifier.closest('.carte').dataset.id;
+        const seance = seancesChargees.find(s => s.id === id);
+        if (seance) entrerEnEdition(seance);
+        return;
+      }
+
       const id = e.target.closest('.carte')?.dataset.id;
       if (!id) return;
 
@@ -89,6 +292,8 @@
         charger();
       }
     });
+
+    chargerExercices();
 
     AuthService.ecouterAuth(user => {
       msgAnonyme.classList.toggle('hidden', !!user);

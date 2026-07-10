@@ -3,7 +3,7 @@
 // Les pages appelantes n'ont pas à connaître le mode de stockage utilisé.
 import { db } from '../firebase-config.js';
 import {
-  collection, addDoc, getDocs, query, orderBy, doc, deleteDoc
+  collection, addDoc, getDocs, query, orderBy, doc, deleteDoc, updateDoc
 } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
 import { AuthService } from './AuthService.js';
 import { Seance } from '../models/Seance.js';
@@ -54,6 +54,25 @@ export const HistoriqueSeanceService = {
       .sort((a, b) => new Date(b.date) - new Date(a.date));
   },
 
+  // Met à jour une séance déjà enregistrée (édition depuis historique.html) —
+  // remplace ses champs (nom, blocs, dureeEstimeeMinutes...) sans changer sa date d'origine.
+  async mettreAJour(id, seance) {
+    const utilisateur = AuthService.utilisateurActuel();
+    const donnees = seance.toFirestore();
+
+    if (utilisateur) {
+      await updateDoc(doc(db, 'joueurs', utilisateur.uid, 'seances', id), donnees);
+      return;
+    }
+
+    const seances = lireLocalStorage();
+    const index = seances.findIndex(s => s.id === id);
+    if (index !== -1) {
+      seances[index] = { id, ...donnees };
+      ecrireLocalStorage(seances);
+    }
+  },
+
   async supprimer(id) {
     const utilisateur = AuthService.utilisateurActuel();
 
@@ -67,13 +86,15 @@ export const HistoriqueSeanceService = {
 
   // Importe l'historique local dans Firestore lors de la première connexion
   // sur un device, sans écraser les séances déjà présentes côté serveur.
+  // Chaque séance est retirée du localStorage dès sa migration réussie (plutôt
+  // qu'à la toute fin) : si une migration échoue en cours de route (réseau...),
+  // les séances déjà migrées ne seront pas re-migrées en double au prochain essai.
   async migrerDepuisLocalStorage(uid) {
     const seancesLocales = lireLocalStorage();
-    if (seancesLocales.length === 0) return;
 
     for (const { id, ...donnees } of seancesLocales) {
       await addDoc(collection(db, 'joueurs', uid, 'seances'), donnees);
+      ecrireLocalStorage(lireLocalStorage().filter(s => s.id !== id));
     }
-    ecrireLocalStorage([]);
   }
 };

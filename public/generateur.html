@@ -107,6 +107,7 @@
     import { genererSeance, calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE, REPOS_ENTRE_SERIES } from './utils/GenerateurSeance.js';
     import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
     import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
+    import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     function creerChoix(conteneur, valeurs, avecIcone = false) {
       valeurs.forEach(valeur => {
@@ -186,7 +187,7 @@
       listeAjoutExercice.innerHTML = filtres.map(ex => `
         <div class="ligne-ajout-exercice" data-id="${ex.id}">
           ${iconeGroupeHtml(ex.groupeMusculaire, 32)}
-          <div class="ligne-ajout-info">
+          <div class="ligne-ajout-info ouvre-detail-exercice" data-id="${ex.id}">
             <div class="ligne-ajout-nom">${ex.nom}</div>
             ${ex.description ? `<div class="ligne-ajout-desc">${ex.description}</div>` : ''}
           </div>
@@ -196,6 +197,8 @@
     }
 
     filtreGroupeAjout.addEventListener('change', afficherListeAjout);
+    activerClicDetailExercice(listeAjoutExercice, id => exercices.find(ex => ex.id === id));
+    activerClicDetailExercice(listeBlocs, id => exercices.find(ex => ex.id === id));
 
     function rafraichirResume() {
       const n = seanceCourante.blocs.length;
@@ -224,12 +227,16 @@
         div.innerHTML = `
           <div class="bloc-num">${i + 1}</div>
           <div class="bloc-info">
-            <div class="bloc-nom">${bloc.exercice.nom}</div>
+            <div class="bloc-nom ouvre-detail-exercice" data-id="${bloc.exercice.id}">${bloc.exercice.nom}</div>
             <div class="bloc-detail">
               <input type="number" min="1" class="input input-bloc" data-index="${i}" data-champ="series" value="${bloc.series}"> séries ×
               <input type="number" min="1" class="input input-bloc" data-index="${i}" data-champ="valeur" value="${bloc.valeur}">
               ${unite} — repos ${bloc.reposApresSecondes}s entre exercices
             </div>
+          </div>
+          <div class="bloc-reordonner">
+            <button class="btn-reordonner btn-monter" type="button" data-index="${i}" title="Monter" ${i === 0 ? 'disabled' : ''}>▲</button>
+            <button class="btn-reordonner btn-descendre" type="button" data-index="${i}" title="Descendre" ${i === seanceCourante.blocs.length - 1 ? 'disabled' : ''}>▼</button>
           </div>
           <button class="btn-danger btn-suppr-bloc" type="button" data-index="${i}">🗑</button>
         `;
@@ -247,13 +254,36 @@
       rafraichirResume();
     });
 
-    listeBlocs.addEventListener('click', e => {
-      const bouton = e.target.closest('.btn-suppr-bloc');
-      if (!bouton) return;
-      const index = parseInt(bouton.dataset.index, 10);
-      seanceCourante.blocs.splice(index, 1);
-      seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
+    function echangerBlocs(index, autreIndex) {
+      const blocs = seanceCourante.blocs;
+      if (autreIndex < 0 || autreIndex >= blocs.length) return;
+      [blocs[index], blocs[autreIndex]] = [blocs[autreIndex], blocs[index]];
+      seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(blocs);
       rafraichirBlocs();
+    }
+
+    listeBlocs.addEventListener('click', e => {
+      const boutonSuppr = e.target.closest('.btn-suppr-bloc');
+      if (boutonSuppr) {
+        const index = parseInt(boutonSuppr.dataset.index, 10);
+        seanceCourante.blocs.splice(index, 1);
+        seanceCourante.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceCourante.blocs);
+        rafraichirBlocs();
+        return;
+      }
+
+      const boutonMonter = e.target.closest('.btn-monter');
+      if (boutonMonter) {
+        const index = parseInt(boutonMonter.dataset.index, 10);
+        echangerBlocs(index, index - 1);
+        return;
+      }
+
+      const boutonDescendre = e.target.closest('.btn-descendre');
+      if (boutonDescendre) {
+        const index = parseInt(boutonDescendre.dataset.index, 10);
+        echangerBlocs(index, index + 1);
+      }
     });
 
     listeAjoutExercice.addEventListener('click', e => {

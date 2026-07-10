@@ -40,9 +40,8 @@
     import { ADMIN_EMAIL } from './auth-config.js';
     import { ExerciceService } from './services/ExerciceService.js';
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
-    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
-
-    const NIVEAU_LIBELLE = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+    import { MATERIEL_DISPONIBLE, LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml } from './utils/constantes.js';
+    import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     const listeEl = document.getElementById('liste-exercices');
     const rechercheEl = document.getElementById('recherche');
@@ -84,7 +83,8 @@
       exercices.forEach(ex => {
         const materiel = (ex.materiel || []).length ? ex.materiel.join(', ') : 'Aucun matériel';
         const div = document.createElement('div');
-        div.className = 'carte';
+        div.className = 'carte ouvre-detail-exercice';
+        div.dataset.id = ex.id;
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:start; gap:10px">
             <p class="carte-titre">${ex.nom}</p>
@@ -115,6 +115,7 @@
     }
 
     rechercheEl.addEventListener('input', filtrer);
+    activerClicDetailExercice(listeEl, id => tousLesExercices.find(ex => ex.id === id));
 
     ExerciceService.ecouterTous(exercices => {
       tousLesExercices = exercices;
