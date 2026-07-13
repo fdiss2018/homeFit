@@ -11,7 +11,7 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.email == 'fdiss093@gmail.com';
     }
 
-    // Historique des séances : chaque utilisateur ne lit/écrit que ses propres données
+    // Séances personnelles : chaque utilisateur ne lit/écrit que ses propres données
     match /joueurs/{uid} {
       match /seances/{seanceId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;

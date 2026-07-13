@@ -1,7 +1,8 @@
 // Copier ce fichier en "firebase-config.js" (ignoré par git) et renseigner
 // la configuration de votre projet Firebase (console.firebase.google.com).
+// Ne sert plus qu'à Firebase Auth : Firestore est désormais uniquement accédé
+// par le backend (Admin SDK, voir backend/.env.example).
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -14,7 +15,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
 const auth = getAuth(app);
 
-export { db, auth };
+export { auth };

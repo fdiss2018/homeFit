@@ -491,7 +491,7 @@ hr.sep {
 .ouvre-detail-exercice { cursor: pointer; }
 .ouvre-detail-exercice:hover { opacity: 0.85; }
 
-/* ── Puces d'exercices cliquables (historique.html) ── */
+/* ── Puces d'exercices cliquables (mes-seances.html) ── */
 .chip-exercice {
   display: inline-block;
   padding: 4px 10px;

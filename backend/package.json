@@ -1,0 +1,19 @@
+{
+  "name": "homefit-backend",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase-admin": "^14.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0"
+  }
+}

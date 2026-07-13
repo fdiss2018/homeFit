@@ -30,14 +30,33 @@
     </div>
 
     <div class="carte">
-      <p class="carte-titre" id="titre-form-exercice">➕ Ajouter un exercice</p>
+      <p class="carte-titre">✨ Proposer des exercices par IA</p>
+      <p class="carte-desc">Décris un exercice, ou un objectif plus large (ex. un programme de
+        rééducation) — l'IA peut proposer plusieurs exercices, et signale ceux qui ressemblent à un
+        exercice déjà présent pour éviter les doublons.</p>
 
       <div class="champ">
-        <label for="description-ia-exercice">Décrire l'exercice à l'IA <span style="text-transform:none">(optionnel)</span></label>
-        <textarea id="description-ia-exercice" class="input" rows="2" placeholder="Ex : pompes diamant, cible triceps et pectoraux, niveau avancé"></textarea>
-        <button id="btn-generer-ia-exercice" class="btn-secondaire" type="button" style="margin-top:8px">✨ Pré-remplir avec l'IA</button>
+        <textarea id="description-ia-exercices" class="input" rows="2" placeholder="Ex : je souhaite faire 20 minutes d'exercice pour renforcer mes genoux suite à la rupture de mon ligament croisé"></textarea>
+        <button id="btn-analyser-ia-exercices" class="btn-secondaire" type="button" style="margin-top:8px">✨ Analyser</button>
       </div>
-      <hr class="sep">
+      <p id="msg-ia-exercices" class="msg hidden"></p>
+
+      <div id="section-nouveaux-ia" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px">
+          <p class="carte-titre" style="margin:0; font-size:0.95rem">🆕 Nouveaux exercices proposés</p>
+          <button id="btn-tout-ajouter-ia" class="btn-primaire" type="button">✅ Tout ajouter</button>
+        </div>
+        <div id="liste-nouveaux-ia" style="margin-top:10px"></div>
+      </div>
+
+      <div id="section-existants-ia" class="hidden">
+        <p class="carte-titre" style="margin-top:16px; font-size:0.95rem">♻️ Mises à jour d'exercices existants</p>
+        <div id="liste-existants-ia"></div>
+      </div>
+    </div>
+
+    <div class="carte">
+      <p class="carte-titre" id="titre-form-exercice">➕ Ajouter un exercice</p>
 
       <div class="champ">
         <label for="nom-exercice">Nom</label>
@@ -53,11 +72,7 @@
       </div>
       <div class="champ">
         <label for="niveau-exercice">Niveau</label>
-        <select id="niveau-exercice" class="input">
-          <option value="debutant">Débutant</option>
-          <option value="intermediaire">Intermédiaire</option>
-          <option value="avance">Avancé</option>
-        </select>
+        <select id="niveau-exercice" class="input"></select>
       </div>
       <div class="champ" style="display:flex; gap:10px">
         <div style="flex:1">
@@ -114,10 +129,10 @@
     import { auth } from './firebase-config.js';
     import { ADMIN_EMAIL } from './auth-config.js';
     import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
-    import { Exercice, GROUPES_MUSCULAIRES } from './models/Exercice.js';
+    import { Exercice, GROUPES_MUSCULAIRES, NIVEAUX } from './models/Exercice.js';
     import { ExerciceService } from './services/ExerciceService.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
-    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
+    import { MATERIEL_DISPONIBLE, LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml } from './utils/constantes.js';
 
     const btnLogout = document.getElementById('btn-logout');
 
@@ -142,6 +157,23 @@
       setTimeout(() => el.classList.add('hidden'), 5000);
     }
 
+    // ── Helpers de rendu partagés entre le formulaire principal et les cartes IA ──
+    function echapperAttribut(texte) {
+      return String(texte ?? '').replace(/"/g, '&quot;');
+    }
+
+    function optionsGroupeHtml(selection) {
+      return GROUPES_MUSCULAIRES.map(g => `<option value="${g}" ${g === selection ? 'selected' : ''}>${LIBELLES[g] || g}</option>`).join('');
+    }
+
+    function optionsNiveauHtml(selection) {
+      return NIVEAUX.map(n => `<option value="${n}" ${n === selection ? 'selected' : ''}>${NIVEAU_LIBELLE[n] || n}</option>`).join('');
+    }
+
+    function choixMaterielHtml(selection) {
+      return MATERIEL_DISPONIBLE.map(m => `<button type="button" class="choix ${(selection || []).includes(m) ? 'actif' : ''}" data-champ="materiel" data-valeur="${m}">${LIBELLES[m] || m}</button>`).join('');
+    }
+
     const fichierInput = document.getElementById('fichier-exercices');
     const msgImport = document.getElementById('msg-import');
     const listeAdmin = document.getElementById('liste-admin');
@@ -151,6 +183,11 @@
     const btnExporter = document.getElementById('btn-exporter');
 
     let exercicesActuels = [];
+
+    async function rafraichirListe() {
+      exercicesActuels = await ExerciceService.listerTous();
+      filtrerEtAfficherListe();
+    }
 
     // ── Filtres de la liste (mêmes filtres habituels que exercices.html) ──
     const rechercheAdmin = document.getElementById('recherche-admin');
@@ -224,6 +261,7 @@
             } catch { ko++; }
           }
 
+          await rafraichirListe();
           afficherMsg(msgImport, ko === 0
             ? `✅ ${ok} exercice${ok > 1 ? 's' : ''} importé${ok > 1 ? 's' : ''}.`
             : `⚠️ ${ok} importé(s), ${ko} en échec.`, ko > 0);
@@ -244,6 +282,7 @@
       const ko = resultats.filter(r => r.status === 'rejected').length;
       const ok = resultats.length - ko;
 
+      await rafraichirListe();
       btnToutSupprimer.disabled = false;
       afficherMsg(msgSupprTout, ko === 0
         ? `✅ ${ok} exercice${ok > 1 ? 's' : ''} supprimé${ok > 1 ? 's' : ''}.`
@@ -274,10 +313,9 @@
     const btnEnregistrerExercice = document.getElementById('btn-enregistrer-exercice');
     const btnAnnulerEditionExercice = document.getElementById('btn-annuler-edition-exercice');
     const msgFormExercice = document.getElementById('msg-form-exercice');
-    const descriptionIAExercice = document.getElementById('description-ia-exercice');
-    const btnGenererIAExercice = document.getElementById('btn-generer-ia-exercice');
 
-    groupeExerciceEl.innerHTML = GROUPES_MUSCULAIRES.map(g => `<option value="${g}">${LIBELLES[g] || g}</option>`).join('');
+    groupeExerciceEl.innerHTML = optionsGroupeHtml();
+    niveauExerciceEl.innerHTML = optionsNiveauHtml('debutant');
 
     MATERIEL_DISPONIBLE.forEach(valeur => {
       const el = document.createElement('button');
@@ -304,7 +342,6 @@
       dureeExerciceEl.value = 30;
       descriptionExerciceEl.value = '';
       instructionsExerciceEl.value = '';
-      descriptionIAExercice.value = '';
     }
 
     function remplirFormulaireExercice(ex) {
@@ -358,6 +395,7 @@
           await ExerciceService.creer(exercice);
           afficherMsg(msgFormExercice, `✅ « ${nom} » ajouté à la bibliothèque.`);
         }
+        await rafraichirListe();
         reinitialiserFormulaireExercice();
       } catch (err) {
         afficherMsg(msgFormExercice, `❌ ${err.message}`, true);
@@ -366,33 +404,188 @@
       }
     });
 
-    btnGenererIAExercice.addEventListener('click', async () => {
-      const description = descriptionIAExercice.value.trim();
+    // ── Propositions d'exercices par IA (nouveaux à ajouter, existants à mettre à jour) ──
+    const descriptionIAExercices = document.getElementById('description-ia-exercices');
+    const btnAnalyserIAExercices = document.getElementById('btn-analyser-ia-exercices');
+    const msgIAExercices = document.getElementById('msg-ia-exercices');
+    const sectionNouveauxIA = document.getElementById('section-nouveaux-ia');
+    const listeNouveauxIA = document.getElementById('liste-nouveaux-ia');
+    const btnToutAjouterIA = document.getElementById('btn-tout-ajouter-ia');
+    const sectionExistantsIA = document.getElementById('section-existants-ia');
+    const listeExistantsIA = document.getElementById('liste-existants-ia');
+
+    const propositionsNouvelles = [];
+    const propositionsExistantes = [];
+
+    function carteExerciceIA(item, index, mode) {
+      const entete = mode === 'existant'
+        ? `<p class="carte-desc">♻️ Met à jour « ${item.nomActuel} »</p>`
+        : '<span class="badge">Nouveau</span>';
+      const libelleBouton = mode === 'existant' ? '💾 Enregistrer' : '➕ Ajouter';
+
+      return `
+        <div class="carte" style="margin-bottom:10px" data-index="${index}">
+          ${entete}
+          <div class="champ">
+            <label>Nom</label>
+            <input type="text" class="input champ-ia" data-champ="nom" value="${echapperAttribut(item.nom)}">
+          </div>
+          <div class="champ">
+            <label>Groupe musculaire</label>
+            <select class="input champ-ia" data-champ="groupeMusculaire">${optionsGroupeHtml(item.groupeMusculaire)}</select>
+          </div>
+          <div class="champ">
+            <label>Matériel <span style="text-transform:none">(vide = poids du corps)</span></label>
+            <div class="grille-choix">${choixMaterielHtml(item.materiel)}</div>
+          </div>
+          <div class="champ">
+            <label>Niveau</label>
+            <select class="input champ-ia" data-champ="niveau">${optionsNiveauHtml(item.niveau)}</select>
+          </div>
+          <div class="champ" style="display:flex; gap:10px">
+            <div style="flex:1">
+              <label>Répétitions par défaut</label>
+              <input type="number" min="1" class="input champ-ia" data-champ="valeurDefautRepetitions" value="${item.valeurDefautRepetitions}">
+            </div>
+            <div style="flex:1">
+              <label>Durée par défaut (s)</label>
+              <input type="number" min="1" class="input champ-ia" data-champ="valeurDefautDuree" value="${item.valeurDefautDuree}">
+            </div>
+          </div>
+          <div class="champ">
+            <label>Description</label>
+            <textarea class="input champ-ia" data-champ="description" rows="2">${item.description || ''}</textarea>
+          </div>
+          <div class="champ">
+            <label>Instructions</label>
+            <textarea class="input champ-ia" data-champ="instructions" rows="2">${item.instructions || ''}</textarea>
+          </div>
+          <button class="btn-primaire btn-action-ia" type="button">${libelleBouton}</button>
+        </div>
+      `;
+    }
+
+    function rendreNouveaux() {
+      sectionNouveauxIA.classList.toggle('hidden', propositionsNouvelles.length === 0);
+      listeNouveauxIA.innerHTML = propositionsNouvelles.map((item, i) => carteExerciceIA(item, i, 'nouveau')).join('');
+    }
+
+    function rendreExistants() {
+      sectionExistantsIA.classList.toggle('hidden', propositionsExistantes.length === 0);
+      listeExistantsIA.innerHTML = propositionsExistantes.map((item, i) => carteExerciceIA(item, i, 'existant')).join('');
+    }
+
+    // Écouteurs délégués attachés une seule fois : l'innerHTML des conteneurs est reconstruit à
+    // chaque rendu (rendreNouveaux/rendreExistants), mais les écouteurs posés sur le conteneur
+    // parent lui-même survivent (même principe que activerClicDetailExercice sur listeAdmin).
+    function attacherEcouteursIA(conteneur, tableau, surValider) {
+      const mettreAJourChamp = e => {
+        const input = e.target;
+        if (!input.classList.contains('champ-ia')) return;
+        const index = parseInt(input.closest('[data-index]').dataset.index, 10);
+        tableau[index][input.dataset.champ] = input.type === 'number' ? (parseInt(input.value, 10) || 0) : input.value;
+      };
+      conteneur.addEventListener('input', mettreAJourChamp);
+      conteneur.addEventListener('change', mettreAJourChamp);
+
+      conteneur.addEventListener('click', async e => {
+        const choixMateriel = e.target.closest('.choix[data-champ="materiel"]');
+        if (choixMateriel) {
+          choixMateriel.classList.toggle('actif');
+          const carte = choixMateriel.closest('[data-index]');
+          const index = parseInt(carte.dataset.index, 10);
+          tableau[index].materiel = [...carte.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur);
+          return;
+        }
+
+        const boutonAction = e.target.closest('.btn-action-ia');
+        if (!boutonAction) return;
+
+        const index = parseInt(boutonAction.closest('[data-index]').dataset.index, 10);
+        if (!tableau[index].nom?.trim()) {
+          afficherMsg(msgIAExercices, '❌ Le nom est requis.', true);
+          return;
+        }
+
+        boutonAction.disabled = true;
+        try {
+          await surValider(index);
+        } finally {
+          boutonAction.disabled = false; // sans effet si la carte a déjà été retirée du DOM
+        }
+      });
+    }
+
+    attacherEcouteursIA(listeNouveauxIA, propositionsNouvelles, async index => {
+      const item = propositionsNouvelles[index];
+      try {
+        await ExerciceService.creer(new Exercice(item));
+        propositionsNouvelles.splice(index, 1);
+        rendreNouveaux();
+        await rafraichirListe();
+        afficherMsg(msgIAExercices, `✅ « ${item.nom} » ajouté à la bibliothèque.`);
+      } catch (err) {
+        afficherMsg(msgIAExercices, `❌ ${err.message}`, true);
+      }
+    });
+
+    attacherEcouteursIA(listeExistantsIA, propositionsExistantes, async index => {
+      const item = propositionsExistantes[index];
+      try {
+        await ExerciceService.mettreAJour(item.id, new Exercice(item));
+        propositionsExistantes.splice(index, 1);
+        rendreExistants();
+        await rafraichirListe();
+        afficherMsg(msgIAExercices, `✅ « ${item.nom} » mis à jour.`);
+      } catch (err) {
+        afficherMsg(msgIAExercices, `❌ ${err.message}`, true);
+      }
+    });
+
+    btnToutAjouterIA.addEventListener('click', async () => {
+      if (propositionsNouvelles.length === 0) return;
+      btnToutAjouterIA.disabled = true;
+
+      const resultats = await Promise.allSettled(propositionsNouvelles.map(item => ExerciceService.creer(new Exercice(item))));
+      const ko = resultats.filter(r => r.status === 'rejected').length;
+      const ok = resultats.length - ko;
+
+      propositionsNouvelles.length = 0;
+      rendreNouveaux();
+      await rafraichirListe();
+      btnToutAjouterIA.disabled = false;
+      afficherMsg(msgIAExercices, ko === 0
+        ? `✅ ${ok} exercice${ok > 1 ? 's' : ''} ajouté${ok > 1 ? 's' : ''}.`
+        : `⚠️ ${ok} ajouté(s), ${ko} en échec.`, ko > 0);
+    });
+
+    btnAnalyserIAExercices.addEventListener('click', async () => {
+      const description = descriptionIAExercices.value.trim();
       if (!description) {
-        afficherMsg(msgFormExercice, "❌ Décris l'exercice avant de lancer l'IA.", true);
+        afficherMsg(msgIAExercices, "❌ Décris l'exercice ou l'objectif avant de lancer l'IA.", true);
         return;
       }
 
-      btnGenererIAExercice.disabled = true;
-      btnGenererIAExercice.textContent = '✨ Analyse en cours...';
+      btnAnalyserIAExercices.disabled = true;
+      btnAnalyserIAExercices.textContent = '✨ Analyse en cours...';
       try {
-        // Import dynamique : un gemini-config.js absent (pas encore configuré,
-        // voir gemini-config.example.js) ne doit pas casser le reste du formulaire.
-        let GeminiService;
-        try {
-          ({ GeminiService } = await import('./services/GeminiService.js'));
-        } catch {
-          throw new Error("IA non configurée : crée public/gemini-config.js (voir gemini-config.example.js).");
-        }
+        const { GeminiService } = await import('./services/GeminiService.js');
+        const { nouveaux, existants } = await GeminiService.interpreterExercices(description);
 
-        const exercice = await GeminiService.interpreterExercice(description);
-        remplirFormulaireExercice(exercice);
-        afficherMsg(msgFormExercice, '✅ Fiche pré-remplie, relis-la avant d\'enregistrer.');
+        propositionsNouvelles.length = 0;
+        propositionsNouvelles.push(...nouveaux);
+        propositionsExistantes.length = 0;
+        propositionsExistantes.push(...existants);
+        rendreNouveaux();
+        rendreExistants();
+
+        const total = nouveaux.length + existants.length;
+        afficherMsg(msgIAExercices, `✅ ${total} exercice${total > 1 ? 's' : ''} proposé${total > 1 ? 's' : ''}, relis-les avant d'enregistrer.`);
       } catch (err) {
-        afficherMsg(msgFormExercice, `❌ ${err.message}`, true);
+        afficherMsg(msgIAExercices, `❌ ${err.message}`, true);
       } finally {
-        btnGenererIAExercice.disabled = false;
-        btnGenererIAExercice.textContent = "✨ Pré-remplir avec l'IA";
+        btnAnalyserIAExercices.disabled = false;
+        btnAnalyserIAExercices.textContent = '✨ Analyser';
       }
     });
 
@@ -420,6 +613,7 @@
         row.querySelector('.btn-supprimer-exercice').addEventListener('click', async () => {
           if (!confirm(`Supprimer « ${ex.nom} » ?`)) return;
           await ExerciceService.supprimer(ex.id);
+          await rafraichirListe();
         });
         listeAdmin.appendChild(row);
       });
@@ -427,10 +621,7 @@
 
     activerClicDetailExercice(listeAdmin, id => exercicesActuels.find(ex => ex.id === id));
 
-    ExerciceService.ecouterTous(exercices => {
-      exercicesActuels = exercices;
-      filtrerEtAfficherListe();
-    });
+    await rafraichirListe();
   </script>
 
 </body>

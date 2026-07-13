@@ -11,7 +11,7 @@
 
   <header class="entete">
     <h1>👤 Mon compte</h1>
-    <p>Connecte-toi pour retrouver ton historique sur tous tes appareils.</p>
+    <p>Connecte-toi pour retrouver tes séances sur tous tes appareils.</p>
   </header>
 
   <main>
@@ -61,7 +61,7 @@
 
   <script type="module">
     import { AuthService } from './services/AuthService.js';
-    import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+    import { MesSeancesService } from './services/MesSeancesService.js';
 
     const carteConnecte   = document.getElementById('carte-connecte');
     const carteFormulaire = document.getElementById('carte-formulaire');
@@ -106,16 +106,13 @@
 
       btnValider.disabled = true;
       try {
-        let uid;
         if (modeInscription) {
-          const user = await AuthService.sInscrire(email, mdp, inputNom.value.trim());
-          uid = user.uid;
+          await AuthService.sInscrire(email, mdp, inputNom.value.trim());
         } else {
-          const user = await AuthService.seConnecter(email, mdp);
-          uid = user.uid;
+          await AuthService.seConnecter(email, mdp);
         }
-        await HistoriqueSeanceService.migrerDepuisLocalStorage(uid);
-        window.location.href = 'historique.html';
+        await MesSeancesService.migrerDepuisLocalStorage();
+        window.location.href = 'mes-seances.html';
       } catch (err) {
         afficherMsg(traduireErreur(err), true);
         btnValider.disabled = false;
@@ -131,8 +128,8 @@
       msgGoogle.classList.add('hidden');
       try {
         const user = await AuthService.seConnecterAvecGoogle();
-        await HistoriqueSeanceService.migrerDepuisLocalStorage(user.uid);
-        window.location.href = 'historique.html';
+        await MesSeancesService.migrerDepuisLocalStorage();
+        window.location.href = 'mes-seances.html';
       } catch (err) {
         if (err.code !== 'auth/popup-closed-by-user') {
           msgGoogle.textContent = traduireErreur(err);

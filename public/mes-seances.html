@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HomeFit - Mon historique</title>
+  <title>HomeFit - Mes séances</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <header class="entete">
-    <h1>📈 Mon historique!</h1>
+    <h1>📈 Mes séances</h1>
     <p id="sous-titre">Les séances que tu as enregistrées.</p>
   </header>
 
@@ -21,15 +21,15 @@
       <p class="carte-titre">📤 Sauvegarde</p>
       <p class="carte-desc">Exporte tes séances enregistrées dans un fichier JSON, ou réimporte une sauvegarde.</p>
       <div style="display:flex; gap:10px; flex-wrap:wrap">
-        <button id="btn-exporter-historique" class="btn-secondaire" type="button">⬇️ Exporter (JSON)</button>
-        <label for="fichier-historique" class="btn-secondaire">📂 Importer (.json)</label>
-        <input type="file" id="fichier-historique" accept=".json" class="hidden">
+        <button id="btn-exporter-seances" class="btn-secondaire" type="button">⬇️ Exporter (JSON)</button>
+        <label for="fichier-seances" class="btn-secondaire">📂 Importer (.json)</label>
+        <input type="file" id="fichier-seances" accept=".json" class="hidden">
       </div>
-      <p id="msg-historique-io" class="msg hidden"></p>
+      <p id="msg-seances-io" class="msg hidden"></p>
     </div>
 
     <p id="msg-anonyme" class="msg msg-erreur hidden">
-      Tu n'es pas connecté(e) : cet historique n'est disponible que sur cet appareil.
+      Tu n'es pas connecté(e) : tes séances ne sont disponibles que sur cet appareil.
       <a href="login.html">Se connecter</a> pour le retrouver partout.
     </p>
 
@@ -40,7 +40,7 @@
 
   <script type="module">
     import { AuthService } from './services/AuthService.js';
-    import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+    import { MesSeancesService } from './services/MesSeancesService.js';
     import { ExerciceService } from './services/ExerciceService.js';
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { Seance } from './models/Seance.js';
@@ -50,9 +50,9 @@
 
     const listeEl = document.getElementById('liste-seances');
     const msgAnonyme = document.getElementById('msg-anonyme');
-    const btnExporterHistorique = document.getElementById('btn-exporter-historique');
-    const fichierHistoriqueInput = document.getElementById('fichier-historique');
-    const msgHistoriqueIO = document.getElementById('msg-historique-io');
+    const btnExporterSeances = document.getElementById('btn-exporter-seances');
+    const fichierSeancesInput = document.getElementById('fichier-seances');
+    const msgSeancesIO = document.getElementById('msg-seances-io');
 
     let seancesChargees = [];
     let tousLesExercices = [];
@@ -67,16 +67,16 @@
       return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
-    function afficherMsgHistorique(texte, erreur = false) {
-      msgHistoriqueIO.textContent = texte;
-      msgHistoriqueIO.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
-      msgHistoriqueIO.classList.remove('hidden');
-      setTimeout(() => msgHistoriqueIO.classList.add('hidden'), 5000);
+    function afficherMsgSeances(texte, erreur = false) {
+      msgSeancesIO.textContent = texte;
+      msgSeancesIO.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
+      msgSeancesIO.classList.remove('hidden');
+      setTimeout(() => msgSeancesIO.classList.add('hidden'), 5000);
     }
 
-    btnExporterHistorique.addEventListener('click', () => {
+    btnExporterSeances.addEventListener('click', () => {
       if (seancesChargees.length === 0) {
-        afficherMsgHistorique('Aucune séance à exporter.', true);
+        afficherMsgSeances('Aucune séance à exporter.', true);
         return;
       }
       const donnees = { seances: seancesChargees.map(s => s.toFirestore()) };
@@ -84,13 +84,13 @@
       const url = URL.createObjectURL(blob);
       const lien = document.createElement('a');
       lien.href = url;
-      lien.download = 'historique-export.json';
+      lien.download = 'seances-export.json';
       lien.click();
       URL.revokeObjectURL(url);
     });
 
-    fichierHistoriqueInput.addEventListener('change', () => {
-      const fichier = fichierHistoriqueInput.files[0];
+    fichierSeancesInput.addEventListener('change', () => {
+      const fichier = fichierSeancesInput.files[0];
       if (!fichier) return;
 
       const reader = new FileReader();
@@ -110,19 +110,19 @@
             try {
               const seance = Seance.fromFirestore(null, item);
               seance.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seance.blocs);
-              await HistoriqueSeanceService.ajouter(seance);
+              await MesSeancesService.ajouter(seance);
               ok++;
             } catch { ko++; }
           }
 
-          afficherMsgHistorique(ko === 0
+          afficherMsgSeances(ko === 0
             ? `✅ ${ok} séance${ok > 1 ? 's' : ''} importée${ok > 1 ? 's' : ''}.`
             : `⚠️ ${ok} importée(s), ${ko} en échec.`, ko > 0);
           await charger();
         } catch (err) {
-          afficherMsgHistorique(`❌ ${err.message}`, true);
+          afficherMsgSeances(`❌ ${err.message}`, true);
         }
-        fichierHistoriqueInput.value = '';
+        fichierSeancesInput.value = '';
       };
       reader.readAsText(fichier);
     });
@@ -133,7 +133,7 @@
     }
 
     async function charger() {
-      seancesChargees = await HistoriqueSeanceService.lister();
+      seancesChargees = await MesSeancesService.lister();
       renderListe();
     }
 
@@ -333,7 +333,7 @@
         const carte = boutonEnregistrer.closest('.carte');
         seanceEnEdition.nom = carte.querySelector('.input-nom-edition').value.trim() || null;
         seanceEnEdition.dureeEstimeeMinutes = calculerDureeEstimeeMinutes(seanceEnEdition.blocs);
-        await HistoriqueSeanceService.mettreAJour(idEnEdition, seanceEnEdition);
+        await MesSeancesService.mettreAJour(idEnEdition, seanceEnEdition);
         idEnEdition = null;
         seanceEnEdition = null;
         await charger();
@@ -368,8 +368,8 @@
       }
 
       if (e.target.closest('.btn-suppr-seance')) {
-        if (!confirm('Supprimer cette séance de ton historique ?')) return;
-        await HistoriqueSeanceService.supprimer(id);
+        if (!confirm('Supprimer cette séance ?')) return;
+        await MesSeancesService.supprimer(id);
         charger();
       }
     });

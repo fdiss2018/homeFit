@@ -21,7 +21,7 @@
       <p class="carte-titre">✨ Décris ta séance</p>
       <p class="carte-desc">Ex. « 20 minutes, jambes et abdos, niveau débutant, pas de matériel »</p>
       <textarea id="description-ia" class="input" rows="3" placeholder="Décris la séance que tu veux..."></textarea>
-      <button id="btn-generer-ia" class="btn-secondaire btn-large" type="button" style="margin-top:10px">✨ Configurer avec l'IA</button>
+      <button id="btn-generer-ia" class="btn-secondaire btn-large" type="button" style="margin-top:10px">✨ Générer avec l'IA</button>
       <p id="msg-ia" class="msg hidden"></p>
     </div>
 
@@ -66,6 +66,7 @@
           <option value="30" selected>30 secondes</option>
           <option value="60">60 secondes</option>
           <option value="90">90 secondes</option>
+          <option value="120">120 secondes</option>
         </select>
       </div>
 
@@ -127,9 +128,10 @@
 
   <script type="module">
     import { ExerciceService } from './services/ExerciceService.js';
+    import { SeanceService } from './services/SeanceService.js';
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
-    import { genererSeance, calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE } from './utils/GenerateurSeance.js';
-    import { HistoriqueSeanceService } from './services/HistoriqueSeanceService.js';
+    import { calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE } from './utils/GenerateurSeance.js';
+    import { MesSeancesService } from './services/MesSeancesService.js';
     import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
@@ -362,7 +364,7 @@
       };
 
       try {
-        const seance = genererSeance(exercices, criteres);
+        const seance = await SeanceService.generer(criteres);
         afficherSeance(seance);
       } catch (err) {
         msgFormulaire.textContent = err.message;
@@ -378,8 +380,8 @@
       btnEnregistrer.disabled = true;
       try {
         seanceCourante.nom = nomSeance.value.trim() || null;
-        await HistoriqueSeanceService.ajouter(seanceCourante);
-        msgResultat.textContent = '✅ Séance enregistrée dans ton historique.';
+        await MesSeancesService.ajouter(seanceCourante);
+        msgResultat.textContent = '✅ Séance ajoutée à tes séances.';
         msgResultat.className = 'msg msg-ok';
         msgResultat.classList.remove('hidden');
       } catch (err) {
@@ -397,6 +399,7 @@
     function appliquerCriteresIA(criteres) {
       document.getElementById('duree').value = String(criteres.dureeMinutes);
       document.getElementById('niveau').value = criteres.niveau;
+      document.getElementById('repos-series').value = String(criteres.reposEntreSeriesSecondes);
       document.getElementById('repos-exercices').value = String(criteres.reposEntreExercicesSecondes);
 
       choixGroupes.querySelectorAll('.choix').forEach(el => {
@@ -425,25 +428,19 @@
       btnGenererIA.disabled = true;
       btnGenererIA.textContent = '✨ Analyse en cours...';
       try {
-        // Import dynamique : un gemini-config.js absent (pas encore configuré,
-        // voir gemini-config.example.js) ne doit pas casser le reste de la page.
-        let GeminiService;
-        try {
-          ({ GeminiService } = await import('./services/GeminiService.js'));
-        } catch {
-          throw new Error("IA non configurée : crée public/gemini-config.js (voir gemini-config.example.js).");
-        }
-
-        const criteres = await GeminiService.interpreterDemande(description);
-        appliquerCriteresIA(criteres);
-        await genererEtAfficher();
+        // L'IA choisit elle-même les exercices adaptés à la description (parmi la
+        // bibliothèque), ainsi que la durée et les temps de repos — un seul appel, la
+        // séance est prête à être affichée (voir services/SeanceService.js).
+        const seance = await SeanceService.genererParIA(description);
+        appliquerCriteresIA(seance.criteres);
+        afficherSeance(seance);
       } catch (err) {
         msgIA.textContent = `❌ ${err.message}`;
         msgIA.className = 'msg msg-erreur';
         msgIA.classList.remove('hidden');
       } finally {
         btnGenererIA.disabled = false;
-        btnGenererIA.textContent = "✨ Configurer avec l'IA";
+        btnGenererIA.textContent = "✨ Générer avec l'IA";
       }
     });
 

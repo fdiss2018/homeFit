@@ -1,6 +1,6 @@
 import { LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml } from './constantes.js';
 
-// Modale de détail d'exercice, partagée entre generateur.html et historique.html.
+// Modale de détail d'exercice, partagée entre generateur.html et mes-seances.html.
 // Un seul élément DOM est créé et réutilisé (ajouté à document.body au premier appel).
 let elementModale = null;
 

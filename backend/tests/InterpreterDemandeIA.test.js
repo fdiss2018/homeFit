@@ -1,34 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { construireRequeteGemini, validerCriteresIA } from '../public/utils/InterpreterDemandeIA.js';
+import { validerCriteresIA } from '../src/domain/InterpreterDemandeIA.js';
 
-describe('construireRequeteGemini', () => {
-  it("inclut la description de l'utilisateur dans le prompt", () => {
-    const requete = construireRequeteGemini('20 minutes, jambes, débutant');
-    expect(requete.contents[0].parts[0].text).toContain('20 minutes, jambes, débutant');
-  });
-
-  it('force une réponse JSON conforme au schéma des critères', () => {
-    const requete = construireRequeteGemini('peu importe');
-    expect(requete.generationConfig.responseMimeType).toBe('application/json');
-    expect(requete.generationConfig.responseSchema.required).toEqual(['dureeMinutes', 'niveau']);
-    expect(requete.generationConfig.responseSchema.properties.niveau.enum).toEqual(['debutant', 'intermediaire', 'avance']);
-  });
-
-  it("ne déclare jamais un enum sur un champ qui n'est pas STRING (l'API Gemini rejette ces requêtes en 400)", () => {
-    const { properties } = construireRequeteGemini('peu importe').generationConfig.responseSchema;
-    for (const [nom, schema] of Object.entries(properties)) {
-      const cible = schema.type === 'ARRAY' ? schema.items : schema;
-      if (cible.enum) expect(cible.type, `propriété "${nom}"`).toBe('STRING');
-    }
-  });
-
-  it('exprime le repos entre exercices en enum de chaînes (contournement de la contrainte Gemini)', () => {
-    const { reposEntreExercicesSecondes } = construireRequeteGemini('peu importe').generationConfig.responseSchema.properties;
-    expect(reposEntreExercicesSecondes.type).toBe('STRING');
-    expect(reposEntreExercicesSecondes.enum).toEqual(['15', '30', '60', '90', '120']);
-  });
-});
-
+// construireRequeteGemini (requête Gemini autonome pour les seuls critères) a été supprimée : la
+// génération par IA passe désormais par un seul appel combiné (voir InterpreterSeanceIA.js /
+// InterpreterSeanceIA.test.js), qui réutilise validerCriteresIA ci-dessous pour la partie critères.
 describe('validerCriteresIA', () => {
   it('accepte une réponse IA bien formée telle quelle', () => {
     const criteres = validerCriteresIA({
@@ -38,6 +13,7 @@ describe('validerCriteresIA', () => {
       niveau: 'avance',
       preferenceType: 'duree',
       enchainementAutomatique: true,
+      reposEntreSeriesSecondes: 15,
       reposEntreExercicesSecondes: 90
     });
     expect(criteres).toEqual({
@@ -47,6 +23,7 @@ describe('validerCriteresIA', () => {
       niveau: 'avance',
       preferenceType: 'duree',
       enchainementAutomatique: true,
+      reposEntreSeriesSecondes: 15,
       reposEntreExercicesSecondes: 90
     });
   });
@@ -59,6 +36,7 @@ describe('validerCriteresIA', () => {
       niveau: 'intermediaire',
       preferenceType: 'repetitions',
       enchainementAutomatique: false,
+      reposEntreSeriesSecondes: 30,
       reposEntreExercicesSecondes: 60
     });
     expect(validerCriteresIA(null)).toEqual(validerCriteresIA({}));
@@ -73,9 +51,9 @@ describe('validerCriteresIA', () => {
     expect(criteres.materielDisponible).toEqual(['halteres']);
   });
 
-  it('convertit un repos entre exercices renvoyé en chaîne (forme réelle renvoyée par Gemini)', () => {
+  it('convertit un repos renvoyé en chaîne (forme réelle renvoyée par Gemini)', () => {
+    expect(validerCriteresIA({ reposEntreSeriesSecondes: '15' }).reposEntreSeriesSecondes).toBe(15);
     expect(validerCriteresIA({ reposEntreExercicesSecondes: '90' }).reposEntreExercicesSecondes).toBe(90);
-    expect(validerCriteresIA({ reposEntreExercicesSecondes: '15' }).reposEntreExercicesSecondes).toBe(15);
   });
 
   it('ramène une durée hors liste à la valeur disponible la plus proche', () => {

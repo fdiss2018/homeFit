@@ -24,9 +24,9 @@
         <span class="icone">📚</span>
         <span class="titre">Bibliothèque d'exercices</span>
       </a>
-      <a href="historique.html" class="nav-tuile">
+      <a href="mes-seances.html" class="nav-tuile">
         <span class="icone">📈</span>
-        <span class="titre">Mon historique</span>
+        <span class="titre">Mes séances</span>
       </a>
       <a href="login.html" id="lien-compte" class="nav-tuile">
         <span class="icone">👤</span>
@@ -51,7 +51,7 @@
       const lien  = document.getElementById('lien-compte');
       if (user) {
         titre.textContent = user.displayName || 'Mon compte';
-        lien.href = 'historique.html';
+        lien.href = 'mes-seances.html';
         lienDeconnexion.classList.remove('hidden');
       } else {
         titre.textContent = 'Connexion';

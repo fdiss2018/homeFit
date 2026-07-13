@@ -117,10 +117,8 @@
     rechercheEl.addEventListener('input', filtrer);
     activerClicDetailExercice(listeEl, id => tousLesExercices.find(ex => ex.id === id));
 
-    ExerciceService.ecouterTous(exercices => {
-      tousLesExercices = exercices;
-      filtrer();
-    });
+    tousLesExercices = await ExerciceService.listerTous();
+    filtrer();
 
     const lienAdmin = document.getElementById('lien-admin');
     AuthService.ecouterAuth(user => {
