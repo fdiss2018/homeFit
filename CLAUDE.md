@@ -11,8 +11,8 @@ Générateur de séances de sport à la maison.
 - **Backend** : Node/Express (`backend/`), seul point d'accès à Cloud Firestore (via
   `firebase-admin`, Admin SDK) et à l'API Gemini (clé serveur, jamais exposée au navigateur).
   Contient toute la **logique métier** : sélection/génération des exercices d'une séance, accès
-  aux données, appel IA. Déployé indépendamment du front (ex. Render Web Service — voir
-  `public/api-config.example.js`).
+  aux données, appel IA. Déployé indépendamment du front sur **Cloud Run** (même projet GCP que
+  Firebase — configuration complète dans `GOOGLE.md`).
 - **Authentification** : Firebase Auth (email + mot de passe, ou Google), entièrement côté front.
   Le backend ne fait que **vérifier** le token ID Firebase envoyé par le front (`firebase-admin`),
   il ne gère aucune session ni aucun formulaire de connexion.
@@ -408,39 +408,29 @@ mergée. Ne pas mocker `Math.random` — préférer des assertions sur l'ensembl
 
 ## Configuration initiale (à faire avant le premier lancement)
 
-### Firebase (projet commun front + backend)
-
-1. Créer un projet sur [console.firebase.google.com](https://console.firebase.google.com)
-2. Activer **Firestore Database** et **Authentication** (méthode Email/mot de passe, + Google si besoin)
-3. Générer une clé de compte de service : Console Firebase → Paramètres du projet → Comptes de
-   service → Générer une nouvelle clé privée (JSON) — nécessaire pour le backend uniquement
+Comptes/services Google (projet Firebase, Firestore, Auth, compte de service, facturation et
+budget Cloud Run) : voir **`GOOGLE.md`**, la référence opérationnelle pour tout ce qui touche à
+Google. Ci-dessous, uniquement la configuration propre au dépôt.
 
 ### Frontend (`public/`)
 
-4. Copier `public/firebase-config.example.js` en `public/firebase-config.js` et renseigner la config
-   du projet (sert uniquement à Firebase Auth désormais)
-5. Copier `public/api-config.example.js` en `public/api-config.js` et renseigner l'URL du backend
+1. Copier `public/firebase-config.example.js` en `public/firebase-config.js` et renseigner la config
+   du projet (sert uniquement à Firebase Auth désormais — voir `GOOGLE.md`)
+2. Copier `public/api-config.example.js` en `public/api-config.js` et renseigner l'URL du backend
    (`http://localhost:3000` en développement local)
-6. Renseigner `public/auth-config.js` (`ADMIN_EMAIL`) avec l'email qui pourra importer des exercices
-7. `firebase use --add` pour lier le projet local au projet Firebase créé
+3. Renseigner `public/auth-config.js` (`ADMIN_EMAIL`) avec l'email qui pourra importer des exercices
+4. `firebase use --add` pour lier le projet local au projet Firebase créé
 
 ### Backend (`backend/`)
 
-8. `cd backend && npm install`
-9. Copier `backend/.env.example` en `backend/.env` et renseigner :
-   - `FIREBASE_SERVICE_ACCOUNT_JSON` : le JSON de l'étape 3, sur une seule ligne
-   - `ADMIN_EMAIL` : le même email qu'à l'étape 6
-   - `CORS_ALLOWED_ORIGIN` : `http://localhost:5000,<domaine Firebase Hosting>`
-   - `GEMINI_API_KEY`/`GEMINI_MODEL` *(optionnel, assistant IA)* : créer une clé sur
-     [aistudio.google.com/apikey](https://aistudio.google.com/apikey) — cette clé n'a plus besoin
-     d'être restreinte par référent HTTP puisqu'elle ne quitte jamais le serveur
-   - `STATIC_API_TOKEN` *(optionnel)* : secret généré une fois (`openssl rand -hex 32`) pour tester
-     l'API via Postman sans passer par un vrai login Firebase
-10. `npm run dev` pour démarrer le backend en local (port `PORT`, 3000 par défaut)
+5. `cd backend && npm install`
+6. Copier `backend/.env.example` en `backend/.env` et renseigner les valeurs (détail de chaque
+   variable et où l'obtenir : voir `GOOGLE.md`)
+7. `npm run dev` pour démarrer le backend en local (port `PORT`, 3000 par défaut)
 
 ### Données
 
-11. Importer `exemple/exercices-exemple.json` via `admin.html` pour peupler la bibliothèque
+8. Importer `exemple/exercices-exemple.json` via `admin.html` pour peupler la bibliothèque
 
 ## Déploiement
 
@@ -450,11 +440,13 @@ Front et backend se déploient indépendamment.
 # Frontend
 firebase deploy
 
-# Backend (ex. Render Web Service) : déployer backend/ avec les variables d'environnement de
-# backend/.env.example renseignées côté hébergeur, puis mettre à jour public/api-config.js
-# (production) avec l'URL réelle du backend déployé, et CORS_ALLOWED_ORIGIN côté backend avec le
-# domaine Firebase Hosting réel.
+# Backend (Cloud Run, depuis backend/)
+gcloud run deploy homefit-backend --source=. --region=europe-west9 --project=homefit-sh56
 ```
+
+Procédure complète (variables d'environnement, `--max-instances`, régénération du fichier d'env
+vars, mise à jour de `public/api-config.js` si l'URL du service change, facturation et budget) :
+voir **`GOOGLE.md`**.
 
 ---
 
@@ -508,6 +500,18 @@ firebase deploy
 - Clé `localStorage['hf_historique']` **volontairement conservée telle quelle** : ce n'est pas
   qu'un nom de code, la renommer aurait fait perdre l'accès aux séances déjà enregistrées
   localement par les utilisateurs anonymes existants
+
+### ✅ Étape 3.4 — Backend déployé en production (Cloud Run)
+- Bug corrigé : `public/api-config.js` déployé pointait encore vers `http://localhost:3000`
+  (`firebase deploy` seul ne suffit pas — le backend doit être hébergé séparément)
+- Choix Cloud Run plutôt que Render (comparatif technique/évolutivité/financier fait avec
+  l'utilisateur) : meilleur démarrage à froid (~1-2s contre 30-60s) et intégration native au
+  projet GCP `homefit-sh56` existant, au prix d'exiger une carte bancaire sur le compte —
+  `--max-instances=2` comme vrai plafond de coût, un budget GCP n'étant qu'une alerte
+- `gcloud` CLI installé et authentifié pour permettre des redéploiements en une commande
+- Toute la configuration Google (comptes, facturation, budget, déploiement Cloud Run, variables
+  d'environnement) déplacée dans un fichier dédié, **`GOOGLE.md`**, pour ne pas alourdir ce fichier
+  d'architecture avec des détails purement opérationnels
 
 ### 🔜 Étape 4 — Suivi de progression
 - Statistiques par exercice (progression du nombre de reps/temps dans la durée)
