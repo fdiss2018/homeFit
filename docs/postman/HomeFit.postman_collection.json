@@ -1,0 +1,310 @@
+{
+  "info": {
+    "name": "HomeFit API",
+    "description": "Collection de test manuel pour le backend HomeFit (Node/Express). Voir docs/postman/README.md pour le guide complet (authentification, scénarios recommandés).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000", "type": "string" },
+    { "key": "static_token", "value": "", "type": "string" },
+    { "key": "test_uid", "value": "test-uid-postman", "type": "string" },
+    { "key": "exercice_id", "value": "", "type": "string" },
+    { "key": "seance_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Whoami",
+      "item": [
+        {
+          "name": "Qui suis-je",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/whoami",
+              "host": ["{{base_url}}"],
+              "path": ["api", "whoami"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exercices",
+      "item": [
+        {
+          "name": "Lister les exercices",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exercices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exercices"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer un exercice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "    pm.collectionVariables.set('exercice_id', json.id);",
+                  "    console.log('exercice_id capturé :', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nom\": \"Pompes diamant (test Postman)\", \"groupeMusculaire\": \"triceps\", \"materiel\": [], \"niveau\": \"avance\", \"valeurDefautRepetitions\": 12, \"valeurDefautDuree\": 36, \"description\": \"Pompes mains jointes en losange sous la poitrine.\", \"instructions\": \"Mains jointes en losange sous le sternum, coudes proches du corps.\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/exercices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exercices"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mettre à jour un exercice",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nom\": \"Pompes diamant (modifié)\", \"groupeMusculaire\": \"triceps\", \"materiel\": [], \"niveau\": \"avance\", \"valeurDefautRepetitions\": 15, \"valeurDefautDuree\": 45, \"description\": \"Pompes mains jointes en losange sous la poitrine.\", \"instructions\": \"Mains jointes en losange sous le sternum, coudes proches du corps.\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/exercices/{{exercice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exercices", "{{exercice_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Supprimer un exercice",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exercices/{{exercice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exercices", "{{exercice_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Séances",
+      "item": [
+        {
+          "name": "Générer une séance (manuelle)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"dureeMinutes\": 20, \"groupesMusculaires\": [\"quadriceps\", \"abdominaux\"], \"materielDisponible\": [], \"niveau\": \"intermediaire\", \"reposEntreSeriesSecondes\": 30, \"reposEntreExercicesSecondes\": 60, \"preferenceType\": \"repetitions\", \"enchainementAutomatique\": false}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/seances/generer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seances", "generer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recalculer la durée",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"blocs\": [{\"series\": 3, \"valeur\": 12, \"type\": \"repetitions\", \"reposSecondes\": 30, \"reposApresSecondes\": 60}]}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/seances/recalculer-duree",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seances", "recalculer-duree"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lister mes séances",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "X-Test-Uid", "value": "{{test_uid}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/seances",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seances"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ajouter une séance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.id) {",
+                  "    pm.collectionVariables.set('seance_id', json.id);",
+                  "    console.log('seance_id capturé :', json.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "X-Test-Uid", "value": "{{test_uid}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nom\": \"Séance test Postman\", \"criteres\": {\"dureeMinutes\": 20, \"niveau\": \"intermediaire\", \"groupesMusculaires\": [], \"materielDisponible\": [], \"reposEntreSeriesSecondes\": 30, \"reposEntreExercicesSecondes\": 60, \"preferenceType\": \"repetitions\", \"enchainementAutomatique\": false}, \"blocs\": [{\"exercice\": {\"id\": \"test-exercice-id\", \"nom\": \"Pompes\"}, \"series\": 3, \"valeur\": 12, \"type\": \"repetitions\", \"reposSecondes\": 30, \"reposApresSecondes\": 60}]}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/seances",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seances"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mettre à jour une séance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "X-Test-Uid", "value": "{{test_uid}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nom\": \"Séance test Postman (modifiée)\", \"criteres\": {\"dureeMinutes\": 20, \"niveau\": \"intermediaire\", \"groupesMusculaires\": [], \"materielDisponible\": [], \"reposEntreSeriesSecondes\": 30, \"reposEntreExercicesSecondes\": 60, \"preferenceType\": \"repetitions\", \"enchainementAutomatique\": false}, \"blocs\": [{\"exercice\": {\"id\": \"test-exercice-id\", \"nom\": \"Pompes\"}, \"series\": 4, \"valeur\": 15, \"type\": \"repetitions\", \"reposSecondes\": 30, \"reposApresSecondes\": 60}]}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/seances/{{seance_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seances", "{{seance_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Supprimer une séance",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "X-Test-Uid", "value": "{{test_uid}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/seances/{{seance_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seances", "{{seance_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "IA",
+      "item": [
+        {
+          "name": "Générer une séance par IA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"description\": \"20 minutes, jambes et abdos, niveau débutant, pas de matériel, repos courts\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ia/generer-seance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ia", "generer-seance"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Proposer des exercices par IA",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{static_token}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"description\": \"je souhaite faire 20 minutes d'exercice pour renforcer mes genoux suite à la rupture de mon ligament croisé\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ia/interpreter-exercices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ia", "interpreter-exercices"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

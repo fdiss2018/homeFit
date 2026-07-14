@@ -2,6 +2,17 @@
 
 Générateur de séances de sport à la maison.
 
+## Documentation
+
+Ce fichier documente l'architecture et les décisions. Pour aller plus loin :
+- [`GOOGLE.md`](GOOGLE.md) — configuration des comptes/services Google (Firebase, Cloud Run, Gemini)
+- [`docs/backend/README.md`](docs/backend/README.md) — diagramme de classes, diagramme de
+  séquence et tableau des routes du backend
+- [`docs/frontend/README.md`](docs/frontend/README.md) — diagramme de classes, diagramme de
+  séquence et tableau des pages du frontend
+- [`docs/postman/README.md`](docs/postman/README.md) — guide de test manuel de l'API (+ collection
+  `HomeFit.postman_collection.json` prête à importer)
+
 ## Stack technique
 
 - **Frontend** : Vanilla HTML/CSS/JS (pas de framework, pas de bundler), déployé sur Firebase
