@@ -245,3 +245,14 @@ Logique pure testée sans réseau ni Firestore dans `backend/tests/` (un fichier
 cd backend
 npm run test:run
 ```
+
+## Déploiement
+
+Sur Cloud Run, depuis `backend/` (build depuis le code source, aucun Dockerfile) :
+
+```bash
+gcloud run deploy homefit-backend --source=. --region=europe-west9 --allow-unauthenticated --max-instances=2 --project=homefit-sh56
+```
+
+Procédure complète (génération du fichier de variables d'environnement, ce qui change si l'URL du
+service change) : voir [`GOOGLE.md`](../../GOOGLE.md#déployerredéployer-le-backend).

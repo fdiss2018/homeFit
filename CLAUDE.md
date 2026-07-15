@@ -449,14 +449,16 @@ Front et backend se déploient indépendamment.
 
 ```bash
 # Frontend
-firebase deploy
+firebase deploy --only hosting
 
 # Backend (Cloud Run, depuis backend/)
-gcloud run deploy homefit-backend --source=. --region=europe-west9 --project=homefit-sh56
+gcloud run deploy homefit-backend --source=. --region=europe-west9 --allow-unauthenticated --max-instances=2 --project=homefit-sh56
 ```
 
-Procédure complète (variables d'environnement, `--max-instances`, régénération du fichier d'env
-vars, mise à jour de `public/api-config.js` si l'URL du service change, facturation et budget) :
+Détail dans [`docs/frontend/README.md`](docs/frontend/README.md#déploiement) et
+[`docs/backend/README.md`](docs/backend/README.md#déploiement). Procédure complète (variables
+d'environnement, régénération du fichier d'env vars, mise à jour de `public/api-config.js` si
+l'URL du service change, facturation et budget) :
 voir **`GOOGLE.md`**.
 
 ---

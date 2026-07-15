@@ -196,3 +196,14 @@ npm run test:run
 
 - `tests/GenerateurSeance.test.js` — `calculerDureeEstimeeMinutes` (recalcul local de durée)
 - `tests/ExecutionSeance.test.js` — `construireEtapes` (aplatissement blocs × séries)
+
+## Déploiement
+
+Sur Firebase Hosting, depuis la racine du dépôt :
+
+```bash
+firebase deploy --only hosting
+```
+
+⚠️ Vérifier au préalable que `public/api-config.js` pointe bien vers l'URL du backend en
+production (pas `http://localhost:3000`) — voir [`GOOGLE.md`](../../GOOGLE.md).

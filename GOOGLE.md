@@ -40,11 +40,11 @@ Nécessaire uniquement pour le backend (`FIREBASE_SERVICE_ACCOUNT_JSON` dans `ba
 Jamais committé (`backend/.env` est gitignoré). Si la clé est perdue/révoquée, il suffit d'en
 regénérer une nouvelle depuis la même page — les anciennes peuvent être révoquées indépendamment.
 
-### `firestore.rules`
-Toujours présent à la racine du repo mais **plus vraiment déterminant** : depuis que Firestore
-n'est accédé que par l'Admin SDK (backend), qui contourne les règles de sécurité, ces règles ne
-protègent plus rien en pratique. Gardé à titre informatif/historique — pourrait être fermé à tout
-accès client direct sans rien changer au fonctionnement de l'app.
+### Sécurité Firestore
+Pas de fichier `firestore.rules` dans ce repo (supprimé — code mort) : la protection ne vient pas
+de règles mais de l'architecture elle-même, aucun SDK client n'accède jamais à Firestore, seul
+l'Admin SDK (backend) le fait, et il contourne de toute façon les règles de sécurité. Écrire des
+règles n'aurait donc protégé rien de réel.
 
 ## Google Cloud — backend (Cloud Run)
 
