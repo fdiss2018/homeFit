@@ -71,8 +71,9 @@ classDiagram
 
     class InterpreterSeanceIA {
         <<module>>
-        +construireRequeteSeanceIA(description, exercices) object
-        +validerSeanceIA(brut, exercices) object
+        +construireRequeteCriteresIA(description) object
+        +construireRequeteSeanceIA(description, exercicesFiltres) object
+        +validerSeanceIA(brut, exercicesFiltres) object
         +formaterCatalogue(exercices) string
     }
 
@@ -133,6 +134,12 @@ Flux choisi car il traverse toutes les couches du backend (middleware, repositor
 service externe). Les routes CRUD simples (`/api/exercices`, `/api/seances`) suivent un schéma
 plus court — route → repository → Firestore — sans étape intermédiaire.
 
+Un seul appel HTTP côté client déclenche **deux appels Gemini** en interne (voir "Assistant IA" et
+Étape 3.5 dans `CLAUDE.md`) : le premier, léger et sans catalogue, ne sert qu'à présélectionner la
+bibliothèque avant le second, qui choisit réellement les exercices — cette présélection réduit
+fortement le catalogue envoyé au second appel (le principal poste de tokens, répété à chaque
+retry), sans changer le contrat de l'API vu du client.
+
 ```mermaid
 sequenceDiagram
     actor Client
@@ -158,9 +165,24 @@ sequenceDiagram
     end
 
     Route->>Gemini: genererSeanceParIA(description, exercices)
-    Gemini->>Interp: construireRequeteSeanceIA(description, exercices)
-    Interp-->>Gemini: requête Gemini (schéma JSON forcé)
 
+    rect rgb(235, 235, 245)
+    Note over Gemini,API: Appel 1 — préfiltre (léger, sans catalogue)
+    Gemini->>Interp: construireRequeteCriteresIA(description)
+    Interp-->>Gemini: requête Gemini (schéma critères seul)
+    loop retries (dégénérescence/timeout, voir services/GeminiClient.js)
+        Gemini->>API: POST generateContent
+        API-->>Gemini: JSON critères (ou erreur transitoire)
+    end
+    Gemini->>Gemini: validerCriteresIA(brut) → critères provisoires
+    Gemini->>Gemini: filtrerExercices(exercices, critèresProvisoires)
+    Note over Gemini: repli sur la bibliothèque complète si le filtre ne retient rien
+    end
+
+    rect rgb(235, 245, 235)
+    Note over Gemini,API: Appel 2 — choix des exercices (catalogue déjà réduit)
+    Gemini->>Interp: construireRequeteSeanceIA(description, exercicesFiltres)
+    Interp-->>Gemini: requête Gemini (schéma { criteres, blocs }, exerciceId=index court en STRING)
     loop jusqu'à 5 tentatives (dégénérescence) / 2 (timeout)
         Gemini->>API: POST generateContent
         alt réponse valide
@@ -170,12 +192,12 @@ sequenceDiagram
             Gemini->>Gemini: nouvelle tentative
         end
     end
-
-    Gemini->>Interp: validerSeanceIA(brut, exercices)
-    Note over Interp: ignore tout exerciceId hors bibliothèque,<br/>ne fait jamais confiance aveuglément à l'IA
+    Gemini->>Interp: validerSeanceIA(brut, exercicesFiltres)
+    Note over Interp: ignore tout exerciceId hors bornes,<br/>ne fait jamais confiance aveuglément à l'IA
     Interp-->>Gemini: { criteres, blocs }
-    Gemini-->>Route: { criteres, blocs }
+    end
 
+    Gemini-->>Route: { criteres, blocs }
     Route->>Route: calculerDureeEstimeeMinutes(blocs)
     Route-->>Client: 200 Seance { criteres, blocs, dureeEstimeeMinutes }
 ```
@@ -248,11 +270,13 @@ npm run test:run
 
 ## Déploiement
 
-Sur Cloud Run, depuis `backend/` (build depuis le code source, aucun Dockerfile) :
+Automatique sur merge dans `main` via `.github/workflows/deploy.yml` (GitHub Actions) — voir
+["## CI/CD" dans `GOOGLE.md`](../../GOOGLE.md#cicd) pour le pipeline complet (secrets, Secret
+Manager, garde-fous). Commande manuelle conservée comme repli en cas d'indisponibilité du pipeline :
 
 ```bash
 gcloud run deploy homefit-backend --source=. --region=europe-west9 --allow-unauthenticated --max-instances=2 --project=homefit-sh56
 ```
 
-Procédure complète (génération du fichier de variables d'environnement, ce qui change si l'URL du
-service change) : voir [`GOOGLE.md`](../../GOOGLE.md#déployerredéployer-le-backend).
+Procédure manuelle complète (génération du fichier de variables d'environnement) : voir
+[`GOOGLE.md`](../../GOOGLE.md#déployerredéployer-le-backend-manuellement-repli--voir-cicd-pour-le-mode-normal).

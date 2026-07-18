@@ -1,6 +1,7 @@
 {
   "hosting": {
     "public": "public",
+    "predeploy": ["node scripts/check-api-config.js"],
     "ignore": [
       "firebase.json",
       "**/.*",

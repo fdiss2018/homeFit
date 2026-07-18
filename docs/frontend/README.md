@@ -199,11 +199,14 @@ npm run test:run
 
 ## Déploiement
 
-Sur Firebase Hosting, depuis la racine du dépôt :
+Automatique sur merge dans `main` via `.github/workflows/deploy.yml` (GitHub Actions) : régénère
+`public/api-config.js`/`public/firebase-config.js` depuis des secrets GitHub (jamais depuis une
+copie de travail locale) avant de déployer — voir ["## CI/CD" dans
+`GOOGLE.md`](../../GOOGLE.md#cicd). Commande manuelle conservée comme repli :
 
 ```bash
 firebase deploy --only hosting
 ```
 
-⚠️ Vérifier au préalable que `public/api-config.js` pointe bien vers l'URL du backend en
-production (pas `http://localhost:3000`) — voir [`GOOGLE.md`](../../GOOGLE.md).
+⚠️ Un hook `predeploy` (`scripts/check-api-config.js`, voir `firebase.json`) bloque automatiquement
+ce déploiement manuel si `public/api-config.js` pointe encore vers `http://localhost:3000`.

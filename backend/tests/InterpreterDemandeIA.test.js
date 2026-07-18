@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { validerCriteresIA } from '../src/domain/InterpreterDemandeIA.js';
 
-// construireRequeteGemini (requête Gemini autonome pour les seuls critères) a été supprimée : la
-// génération par IA passe désormais par un seul appel combiné (voir InterpreterSeanceIA.js /
-// InterpreterSeanceIA.test.js), qui réutilise validerCriteresIA ci-dessous pour la partie critères.
+// validerCriteresIA est réutilisée par le premier des deux appels Gemini de la génération de
+// séance par IA (voir InterpreterSeanceIA.construireRequeteCriteresIA / GeminiClient.js), qui
+// présélectionne ainsi la bibliothèque avant le second appel, chargé du choix des exercices.
 describe('validerCriteresIA', () => {
   it('accepte une réponse IA bien formée telle quelle', () => {
     const criteres = validerCriteresIA({

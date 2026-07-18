@@ -1,0 +1,67 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # public/firebase-config.js et public/api-config.js sont gitignorés (voir CLAUDE.md) — ils
+      # sont générés ici, à chaque déploiement, depuis des secrets GitHub. Il n'existe donc plus de
+      # fichier local à "oublier de rebasculer" entre dev et prod : la valeur déployée vient
+      # toujours de secrets.PROD_API_BASE_URL, jamais d'une copie de travail locale.
+      - name: Générer public/firebase-config.js depuis le secret
+        run: echo "${{ secrets.FIREBASE_CONFIG_JS }}" > public/firebase-config.js
+
+      - name: Générer public/api-config.js (URL Cloud Run de production)
+        run: |
+          cat > public/api-config.js <<EOF
+          export const API_BASE_URL = "${{ secrets.PROD_API_BASE_URL }}";
+          EOF
+
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEPLOY }}
+          projectId: homefit-sh56
+          channelId: live
+
+      # Ferme la boucle révélée par l'incident déjà vécu : personne ne vérifiait ce qui était
+      # réellement servi en production avant que ça casse silencieusement.
+      - name: Vérifier que la prod ne pointe jamais vers localhost
+        run: curl -fsS https://homefit-sh56.web.app/api-config.js | grep -qv localhost
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Les 3 valeurs sensibles (clé de compte de service Firebase, clé Gemini, bearer statique)
+      # viennent de Google Secret Manager via --set-secrets : elles ne transitent plus jamais par
+      # un fichier en clair (contrairement à l'ancien script `node -e` documenté dans GOOGLE.md, qui
+      # écrivait un YAML temporaire). Les valeurs non sensibles viennent de secrets GitHub, seule
+      # source de vérité (plus de dérive avec un backend/.env local périmé). Délimiteur ";" au lieu
+      # de "," car CORS_ALLOWED_ORIGIN contient elle-même des virgules.
+      - name: Déployer sur Cloud Run
+        run: |
+          gcloud run deploy homefit-backend \
+            --source=backend \
+            --region=europe-west9 \
+            --project=homefit-sh56 \
+            --allow-unauthenticated \
+            --max-instances=2 \
+            --set-env-vars="^;^ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }};GEMINI_MODEL=${{ secrets.GEMINI_MODEL }};CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}" \
+            --set-secrets="FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,STATIC_API_TOKEN=STATIC_API_TOKEN:latest"
+
+      - name: Vérifier que le backend répond (health-check)
+        run: curl -fsS "$(gcloud run services describe homefit-backend --region=europe-west9 --project=homefit-sh56 --format='value(status.url)')/api/whoami"

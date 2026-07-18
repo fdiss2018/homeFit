@@ -291,13 +291,14 @@ principe : **l'IA ne choisit/n'écrit jamais rien directement dans Firestore**, 
 pré-remplir un résultat (séance générée, fiche exercice) que l'utilisateur relit et valide
 lui-même avant enregistrement.
 
-- Sur `generateur.html` ("Décris ta séance") : un seul appel (`SeanceService.genererParIA()`) où
-  l'IA choisit **directement** dans la bibliothèque d'exercices (fournie dans le prompt, publique
-  via `GET /api/exercices`) ceux qui correspondent le mieux à la description, et détermine
-  elle-même la durée et les temps de repos (par bloc, pas seulement une valeur globale) — pas
-  d'étape intermédiaire de pré-remplissage de critères suivie d'un tirage aléatoire : la séance
-  complète est renvoyée et affichée directement, éditable comme toute séance générée avant
-  enregistrement.
+- Sur `generateur.html` ("Décris ta séance") : un seul appel côté front (`SeanceService.genererParIA()`,
+  `POST /api/ia/generer-seance`) où l'IA choisit **directement** dans la bibliothèque d'exercices
+  ceux qui correspondent le mieux à la description, et détermine elle-même la durée et les temps de
+  repos (par bloc, pas seulement une valeur globale) — la séance complète est renvoyée et affichée
+  directement, éditable comme toute séance générée avant enregistrement. Côté backend, cet unique
+  appel HTTP orchestre en réalité **deux appels Gemini** (voir "Répartition front/backend"
+  ci-dessous et Étape 3.5) : un préfiltre léger de la bibliothèque, puis le choix final des
+  exercices — transparent pour le front, qui ne voit toujours qu'un aller-retour.
 - Sur `admin.html` ("Proposer des exercices par IA") : convertit une description en **une ou
   plusieurs** fiches `Exercice` (un exercice unique, ou tout un programme — ex. objectif de
   rééducation). L'IA reçoit le catalogue déjà existant et détecte les doublons plutôt que de
@@ -320,24 +321,30 @@ lui-même avant enregistrement.
   `POST /api/ia/interpreter-exercices` via `ApiClient` — aucune logique, aucune clé, aucun appel
   réseau direct vers Gemini, aucune liste d'exercices à assembler côté front (le backend la
   récupère lui-même via `ExerciceRepository`).
-- `backend/src/domain/InterpreterSeanceIA.js` : construit le prompt (description + catalogue
-  complet id/nom/groupe/niveau/matériel) et le schéma de sortie JSON forcé — `exerciceId` y est
-  contraint à un **enum des ids réellement disponibles**, ce qui élimine à la source le risque
-  qu'un exercice halluciné soit choisi (defense in depth : `validerSeanceIA()` revérifie quand même
-  chaque id après coup, ne fait jamais confiance aveuglément à la sortie du modèle, et rejette
-  silencieusement tout bloc dont l'id ne correspond à aucun exercice fourni). Si l'IA ne
-  sélectionne finalement aucun exercice valide, l'appel échoue explicitement (message clair côté
-  front) plutôt que de renvoyer une séance vide. Réutilise `validerCriteresIA()`
-  (`InterpreterDemandeIA.js`) pour la partie critères (résumé de la séance, utilisé comme défauts
-  si l'utilisateur ajoute un exercice manuellement ensuite). Logique pure, testée sans réseau
-  (`backend/tests/InterpreterSeanceIA.test.js`).
+- `backend/src/domain/InterpreterSeanceIA.js` : deux constructeurs de requête Gemini, appelés en
+  séquence par `GeminiClient.genererSeanceParIA()` (voir Étape 3.5) —
+  `construireRequeteCriteresIA(description)` (léger, sans catalogue) déduit des critères
+  provisoires, utilisés uniquement pour présélectionner la bibliothèque (`filtrerExercices`,
+  `backend/src/domain/GenerateurSeance.js`) avant `construireRequeteSeanceIA(description,
+  exercicesFiltres)`, qui choisit les exercices dans cette liste réduite (catalogue référencé par
+  **index court** plutôt que par id Firestore, pour limiter les tokens). **Aucun `enum`** sur le
+  champ référençant l'exercice (`exerciceId`, toujours **STRING**, jamais INTEGER) : mesuré
+  empiriquement contre l'API réelle que contraindre ce champ par un `enum` (au-delà d'une
+  cinquantaine de valeurs) ou le typer en INTEGER fait dériver ce modèle vers une génération
+  dégénérée d'une façon quasi systématique — `validerSeanceIA()` reste donc la seule ligne de
+  défense contre un index halluciné ou hors bornes (jamais confiance aveugle dans la sortie du
+  modèle). Si l'IA ne sélectionne finalement aucun exercice valide, l'appel échoue explicitement
+  (message clair côté front) plutôt que de renvoyer une séance vide. Réutilise `validerCriteresIA()`
+  (`InterpreterDemandeIA.js`) pour valider les critères des deux appels. Logique pure, testée sans
+  réseau (`backend/tests/InterpreterSeanceIA.test.js`).
 - `backend/src/domain/InterpreterExerciceIA.js` : même principe de schéma forcé + validation sans
   confiance aveugle, mais pour un **tableau** de propositions plutôt qu'une fiche unique.
   `construireRequeteExercicesIA(description, exercicesDisponibles)` fournit le catalogue existant
   dans le prompt (réutilise `formaterCatalogue()`, exporté par `InterpreterSeanceIA.js` — même
-  format `id | nom | groupe | niveau | matériel`) et contraint `exerciceExistantId` via `enum` aux
-  ids réellement disponibles **+ le sentinel `"nouveau"`** — Gemini rejette un `enum` contenant une
-  chaîne vide (`"cannot be empty"`), d'où ce sentinel plutôt que `""`. `validerExercicesIA(brut,
+  format `id | nom | groupe | niveau | matériel`, avec les ids réels cette fois, sans index court).
+  `exerciceExistantId` reste volontairement **STRING libre, sans `enum`** (même raison que
+  `exerciceId` dans `InterpreterSeanceIA.js` ci-dessus) ; le prompt utilise le sentinel `"nouveau"`
+  pour signaler un exercice à créer plutôt qu'une chaîne vide. `validerExercicesIA(brut,
   exercicesDisponibles)` résout chaque `exerciceExistantId` par recherche dans le catalogue (un id
   halluciné ou absent retombe simplement en "nouveau", sans erreur) et sépare le résultat en
   `{ nouveaux, existants }`. Contrairement à la fiche unique d'avant : un item individuellement
@@ -402,7 +409,7 @@ tests/                                # Front — logique encore pure côté nav
 backend/tests/                        # Backend — toute la logique métier
 ├── GenerateurSeance.test.js            # filtrerExercices, genererSeance, calculerDureeEstimeeMinutes
 ├── InterpreterDemandeIA.test.js        # validerCriteresIA (jamais confiance à la sortie IA)
-├── InterpreterSeanceIA.test.js         # construireRequeteSeanceIA, validerSeanceIA (ignore les ids hallucinés, échoue si aucun bloc valide)
+├── InterpreterSeanceIA.test.js         # construireRequeteCriteresIA, construireRequeteSeanceIA, validerSeanceIA (ignore les index hallucinés/hors bornes, échoue si aucun bloc valide)
 └── InterpreterExerciceIA.test.js       # construireRequeteExercicesIA, validerExercicesIA (détection de doublons, item invalide ignoré sans faire échouer le lot)
 ```
 
@@ -443,9 +450,16 @@ Google. Ci-dessous, uniquement la configuration propre au dépôt.
 
 8. Importer `exemple/exercices-exemple.json` via `admin.html` pour peupler la bibliothèque
 
-## Déploiement
+## CI/CD et déploiement
 
-Front et backend se déploient indépendamment.
+Front et backend se déploient indépendamment, **automatiquement** sur chaque merge dans `main` via
+GitHub Actions (`.github/workflows/deploy.yml`) — voir Étape 3.6 ci-dessous et la section
+"## CI/CD" de **`GOOGLE.md`** pour le pipeline complet (secrets, Secret Manager, garde-fous,
+roadmap CI/CD future). Toute modification passe par une branche + une Pull Request vers `main` ;
+`.github/workflows/ci.yml` fait tourner les tests (front + backend) sur chaque PR, requis avant
+merge.
+
+Commandes manuelles conservées comme repli (« break-glass », si le pipeline est indisponible) :
 
 ```bash
 # Frontend
@@ -456,9 +470,9 @@ gcloud run deploy homefit-backend --source=. --region=europe-west9 --allow-unaut
 ```
 
 Détail dans [`docs/frontend/README.md`](docs/frontend/README.md#déploiement) et
-[`docs/backend/README.md`](docs/backend/README.md#déploiement). Procédure complète (variables
-d'environnement, régénération du fichier d'env vars, mise à jour de `public/api-config.js` si
-l'URL du service change, facturation et budget) :
+[`docs/backend/README.md`](docs/backend/README.md#déploiement). Procédure manuelle complète
+(variables d'environnement, régénération du fichier d'env vars, mise à jour de
+`public/api-config.js` si l'URL du service change, facturation et budget) :
 voir **`GOOGLE.md`**.
 
 ---
@@ -525,6 +539,52 @@ voir **`GOOGLE.md`**.
 - Toute la configuration Google (comptes, facturation, budget, déploiement Cloud Run, variables
   d'environnement) déplacée dans un fichier dédié, **`GOOGLE.md`**, pour ne pas alourdir ce fichier
   d'architecture avec des détails purement opérationnels
+
+### ✅ Étape 3.5 — Fiabilité et coût de la génération de séance par IA
+- Objectif : la génération de séance par IA (`POST /api/ia/generer-seance`) devait aboutir plus
+  souvent tout en consommant moins de tokens, sans changer le contrat de l'API (le front continue
+  de ne faire qu'un seul appel HTTP, voir la section "Assistant IA" ci-dessus)
+- `thinkingConfig: { thinkingBudget: 0 }` ajouté aux deux appels Gemini du module (raisonnement
+  invisible désactivé, sans coût caché ni impact négatif mesuré sur ce modèle)
+- Le catalogue complet (jusqu'à 160 exercices) n'est plus envoyé tel quel au(x) appel(s) qui
+  choisissent les exercices : un premier appel léger (`construireRequeteCriteresIA`, sans
+  catalogue) déduit des critères provisoires qui présélectionnent la bibliothèque
+  (`filtrerExercices`) avant le second appel, avec repli sur le catalogue complet si le filtre ne
+  retient rien — gain mesuré empiriquement de plusieurs milliers de tokens à quelques centaines par
+  tentative selon la sélectivité de la description
+- **Découverte empirique importante** (contre l'API réelle, pas des mocks) : une première version
+  référençait chaque exercice par un index INTEGER et retirait l'objet `criteres`, désormais
+  inutile, du schéma de réponse du second appel — cette combinaison fait dériver
+  `gemini-flash-lite-latest` vers une génération dégénérée de façon **quasi systématique** (pas le
+  taux probabiliste habituel). Il faut impérativement garder (a) un champ **STRING** pour
+  référencer l'exercice (même s'il ne contient qu'un index court) et (b) l'objet `criteres` dans le
+  schéma, même si son contenu est ensuite ignoré au profit de celui du premier appel — voir le
+  commentaire détaillé dans `backend/src/domain/InterpreterSeanceIA.js`
+- Le dérapage dégénéré probabiliste déjà documenté (variable, ~10% à plus de 70% selon les moments)
+  reste inchangé par nature — ce n'est pas quelque chose que ce changement pouvait éliminer, seul
+  son coût par tentative a baissé ; le retry existant (`TENTATIVES_MAX`) reste la ligne de défense
+
+### ✅ Étape 3.6 — Stratégie CI/CD (GitHub Actions)
+- Deux incidents réels avec le processus 100% manuel ont motivé cette étape : `public/api-config.js`
+  déployé en pointant encore vers `localhost` (déjà arrivé deux fois, cf. Étape 3.4 pour la première
+  occurrence) et des variables d'environnement Cloud Run générées à la main depuis un `backend/.env`
+  potentiellement périmé
+- Process : toute modification passe désormais par une branche + Pull Request vers `main` ;
+  `.github/workflows/ci.yml` fait tourner les tests (front + backend) sur chaque PR, requis avant
+  merge (règle de protection de branche) — `main` reflète ainsi systématiquement ce qui est déployé
+- `.github/workflows/deploy.yml` déploie automatiquement sur chaque merge dans `main` : le frontend
+  régénère `public/firebase-config.js`/`public/api-config.js` depuis des secrets GitHub à chaque
+  exécution (plus de copie de travail locale à oublier de rebasculer) ; le backend passe les 3
+  valeurs sensibles par **Google Secret Manager** (`--set-secrets`, plus de fichier en clair) et les
+  valeurs non sensibles par secrets GitHub. Les deux jobs vérifient ce qui est réellement servi
+  après coup (la prod ne pointe jamais vers `localhost`, `/api/whoami` répond)
+- Garde-fou indépendant du pipeline : `scripts/check-api-config.js`, hook `predeploy` dans
+  `firebase.json`, bloque tout déploiement manuel si `public/api-config.js` contient `localhost`
+- Décision assumée : ce déploiement utilise une clé de compte de service GCP stockée en secret
+  GitHub plutôt que Workload Identity Federation (sans clé statique) — jugé disproportionné pour un
+  dépôt/déployeur unique ; migration documentée comme évolution future dans `GOOGLE.md`, avec
+  d'autres pistes (previews Firebase par PR, backend de staging isolé) non implémentées à ce stade
+- Détail complet (secrets, commandes GCP, rollback) : voir la section "## CI/CD" de **`GOOGLE.md`**
 
 ### 🔜 Étape 4 — Suivi de progression
 - Statistiques par exercice (progression du nombre de reps/temps dans la durée)

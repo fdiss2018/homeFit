@@ -15,6 +15,107 @@ ou redéployer.
   - Console Firebase : [console.firebase.google.com/project/homefit-sh56](https://console.firebase.google.com/project/homefit-sh56)
   - Console Google Cloud : [console.cloud.google.com/home/dashboard?project=homefit-sh56](https://console.cloud.google.com/home/dashboard?project=homefit-sh56)
 
+## CI/CD
+
+Depuis l'Étape 3.6 (voir `CLAUDE.md`), front et backend se déploient **automatiquement** via
+GitHub Actions à chaque merge dans `main` — plus de déploiement manuel en fonctionnement normal
+(les procédures manuelles documentées plus bas dans ce fichier restent en repli — "break-glass" —
+si le pipeline est indisponible).
+
+### Pourquoi (deux incidents réels avant la mise en place)
+
+1. `public/api-config.js` (gitignoré) était basculé à la main entre `localhost:3000` et l'URL
+   Cloud Run avant/après chaque `firebase deploy` — **deux fois**, le site a été déployé en
+   production avec ce fichier encore pointé vers `localhost`, cassant silencieusement l'app pour
+   tous les visiteurs.
+2. Les variables d'environnement Cloud Run étaient générées à la main depuis `backend/.env` via un
+   script ad hoc écrivant un YAML temporaire en clair (voir l'ancienne procédure ci-dessous).
+
+### Processus
+
+- Toute modification passe par une branche + une Pull Request vers `main`.
+- `.github/workflows/ci.yml` fait tourner les tests (front + backend, `npm run test:run`) sur
+  chaque PR — aucun secret nécessaire (logique pure, sans réseau ni Firestore). Requis avant merge
+  (règle de protection de branche sur `main`, voir "Actions manuelles" plus bas).
+- `.github/workflows/deploy.yml` se déclenche sur chaque `push` vers `main` :
+  - **Frontend** : régénère `public/firebase-config.js`/`public/api-config.js` depuis des secrets
+    GitHub à chaque exécution (jamais depuis une copie de travail locale), déploie via
+    `FirebaseExtended/action-hosting-deploy`, puis vérifie que la prod ne sert jamais `localhost`.
+  - **Backend** : `gcloud run deploy` avec les 3 valeurs sensibles (`FIREBASE_SERVICE_ACCOUNT_JSON`,
+    `GEMINI_API_KEY`, `STATIC_API_TOKEN`) référencées depuis **Google Secret Manager**
+    (`--set-secrets`, plus aucun fichier en clair) et les valeurs non sensibles depuis des secrets
+    GitHub, puis vérifie que `/api/whoami` répond.
+- Garde-fou indépendant, actif même hors CI : `scripts/check-api-config.js`, branché en hook
+  `predeploy` dans `firebase.json` — bloque tout `firebase deploy` (manuel y compris) si
+  `public/api-config.js` contient `localhost`.
+
+### Secrets GitHub à créer (Settings → Secrets and variables → Actions)
+
+| Secret | Contenu |
+|---|---|
+| `GCP_SA_KEY` | Clé JSON du compte de service de déploiement (voir plus bas) |
+| `FIREBASE_SERVICE_ACCOUNT_DEPLOY` | Clé JSON d'un compte de service avec le rôle Firebase Hosting Admin |
+| `FIREBASE_CONFIG_JS` | Contenu complet d'un `public/firebase-config.js` rempli (voir `public/firebase-config.example.js`) |
+| `PROD_API_BASE_URL` | `https://homefit-backend-194834616546.europe-west9.run.app` |
+| `ADMIN_EMAIL`, `GEMINI_MODEL`, `CORS_ALLOWED_ORIGIN` | Copier depuis `backend/.env` |
+
+### Secrets Google Secret Manager à créer (projet `homefit-sh56`)
+
+```bash
+gcloud services enable secretmanager.googleapis.com --project=homefit-sh56
+
+gcloud secrets create FIREBASE_SERVICE_ACCOUNT_JSON --replication-policy=automatic --project=homefit-sh56
+gcloud secrets versions add FIREBASE_SERVICE_ACCOUNT_JSON --data-file=- --project=homefit-sh56
+# (coller le JSON du compte de service Firebase Admin, puis Ctrl+D)
+
+gcloud secrets create GEMINI_API_KEY --replication-policy=automatic --project=homefit-sh56
+gcloud secrets versions add GEMINI_API_KEY --data-file=- --project=homefit-sh56
+
+gcloud secrets create STATIC_API_TOKEN --replication-policy=automatic --project=homefit-sh56
+gcloud secrets versions add STATIC_API_TOKEN --data-file=- --project=homefit-sh56
+```
+
+### Compte de service de déploiement (`GCP_SA_KEY`)
+
+```bash
+gcloud iam service-accounts create homefit-ci-deployer \
+  --display-name="HomeFit CI/CD deployer" --project=homefit-sh56
+
+for ROLE in roles/run.admin roles/iam.serviceAccountUser roles/cloudbuild.builds.editor roles/secretmanager.secretAccessor; do
+  gcloud projects add-iam-policy-binding homefit-sh56 \
+    --member="serviceAccount:homefit-ci-deployer@homefit-sh56.iam.gserviceaccount.com" \
+    --role="$ROLE"
+done
+
+gcloud iam service-accounts keys create homefit-ci-deployer-key.json \
+  --iam-account=homefit-ci-deployer@homefit-sh56.iam.gserviceaccount.com
+# coller le contenu de homefit-ci-deployer-key.json dans le secret GitHub GCP_SA_KEY,
+# puis supprimer le fichier local
+```
+
+### Actions manuelles requises (accès GitHub/GCP de l'utilisateur, non automatisables)
+
+- GitHub : règle de protection sur `main` (PR obligatoire, checks `test-frontend`/`test-backend`
+  requis) + créer les secrets listés ci-dessus.
+- GCP : exécuter les commandes ci-dessus (compte de service, secrets Secret Manager) ; créer/obtenir
+  un compte de service avec le rôle Firebase Hosting Admin pour `FIREBASE_SERVICE_ACCOUNT_DEPLOY`.
+
+### Roadmap CI/CD future (pistes documentées, pas mises en place)
+
+À activer à la carte si le besoin se présente (plus de contributeurs, plus de trafic) :
+- **Previews Firebase par PR** (`firebase hosting:channel:deploy`, URL éphémère commentée sur la
+  PR) pointées vers un backend de staging plutôt que prod.
+- **Backend de staging** : second service Cloud Run `homefit-backend-staging` (scale-to-zero, coût
+  quasi nul à l'arrêt) + base Firestore **nommée séparée** (pas la base par défaut) — nécessaire
+  car la bibliothèque d'exercices est une collection globale partagée, pas par utilisateur ; tester
+  en staging sur les mêmes données toucherait directement ce que voient les vrais utilisateurs.
+  Implique une petite modification de code (`backend/src/firebaseAdmin.js` :
+  `getFirestore(app, process.env.FIRESTORE_DATABASE_ID)`).
+- **Workload Identity Federation** : élimine la clé de compte de service statique (`GCP_SA_KEY`) au
+  profit d'un jeton OIDC de courte durée — pertinent le jour où plusieurs dépôts/contributeurs
+  justifient l'effort de mise en place (pool + provider OIDC + bindings IAM).
+- **GitHub Environments** avec revue manuelle obligatoire avant le job de déploiement prod.
+
 ## Firebase
 
 ### Services activés
@@ -92,7 +193,11 @@ gcloud config get-value project   # doit renvoyer homefit-sh56
 > $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 > ```
 
-### Déployer/redéployer le backend
+### Déployer/redéployer le backend manuellement (repli — voir "## CI/CD" pour le mode normal)
+
+⚠️ En fonctionnement normal, le déploiement se fait via `.github/workflows/deploy.yml` sur merge
+dans `main` (voir "## CI/CD" plus haut) — cette procédure manuelle ne sert que de secours si le
+pipeline est indisponible.
 
 Le déploiement se fait **depuis le code source** (buildpack automatique, aucun Dockerfile
 nécessaire). Les variables d'environnement ne sont pas passées en ligne de commande (le JSON de
@@ -158,5 +263,22 @@ Source de vérité des clés : `backend/.env.example`. Où obtenir chaque valeur
 - `http://localhost:5000` (dev local, `firebase serve`/emulators)
 - `https://homefit-sh56.web.app` (production)
 
-À mettre à jour aussi bien dans `backend/.env` (local) que dans le fichier d'env vars généré pour
-Cloud Run (voir plus haut) si un nouveau domaine doit être autorisé.
+À mettre à jour aussi bien dans `backend/.env` (local) que dans le secret GitHub
+`CORS_ALLOWED_ORIGIN` (voir "## CI/CD") si un nouveau domaine doit être autorisé.
+
+## Rollback en cas d'incident
+
+Revenir en arrière ne nécessite jamais un nouveau déploiement — les révisions/versions précédentes
+existent déjà.
+
+**Backend (Cloud Run)** — bascule instantanée du trafic vers une révision antérieure :
+```bash
+gcloud run revisions list --service=homefit-backend --region=europe-west9 --project=homefit-sh56
+gcloud run services update-traffic homefit-backend \
+  --region=europe-west9 --project=homefit-sh56 \
+  --to-revisions=homefit-backend-00042-abc=100
+```
+
+**Frontend (Firebase Hosting)** — le plus simple : Console Firebase → Hosting → historique des
+versions → bouton "Rollback" (un clic, pas besoin de la CLI). Équivalent en ligne de commande :
+`firebase hosting:clone SOURCE_SITE_ID:SOURCE_VERSION_ID homefit-sh56:live`.
