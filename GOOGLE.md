@@ -75,17 +75,52 @@ gcloud secrets create STATIC_API_TOKEN --replication-policy=automatic --project=
 gcloud secrets versions add STATIC_API_TOKEN --data-file=- --project=homefit-sh56
 ```
 
+⚠️ Deux comptes de service distincts entrent en jeu, avec des besoins différents :
+- **`homefit-ci-deployer`** (voir plus bas) : exécute `gcloud run deploy`, a besoin de
+  `roles/secretmanager.secretAccessor` uniquement pour que gcloud puisse *référencer* les secrets
+  au moment du déploiement.
+- **Le compte de service runtime de Cloud Run** (`PROJECT_NUMBER-compute@developer.gserviceaccount.com`,
+  le compte par défaut puisque le déploiement ne précise pas `--service-account`) : c'est LUI qui
+  exécute le conteneur et doit pouvoir *lire* les secrets à l'exécution — sans ce binding, la
+  création de la révision échoue (`Permission denied on secret ... for Revision service account`).
+  À accorder sur chacun des 3 secrets :
+
+```bash
+for SECRET in FIREBASE_SERVICE_ACCOUNT_JSON GEMINI_API_KEY STATIC_API_TOKEN; do
+  gcloud secrets add-iam-policy-binding $SECRET \
+    --member="serviceAccount:194834616546-compute@developer.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor" \
+    --project=homefit-sh56
+done
+```
+
 ### Compte de service de déploiement (`GCP_SA_KEY`)
 
 ```bash
 gcloud iam service-accounts create homefit-ci-deployer \
   --display-name="HomeFit CI/CD deployer" --project=homefit-sh56
 
-for ROLE in roles/run.admin roles/iam.serviceAccountUser roles/cloudbuild.builds.editor roles/secretmanager.secretAccessor; do
+for ROLE in roles/run.admin roles/iam.serviceAccountUser roles/cloudbuild.builds.editor roles/secretmanager.secretAccessor roles/artifactregistry.writer roles/storage.admin; do
   gcloud projects add-iam-policy-binding homefit-sh56 \
     --member="serviceAccount:homefit-ci-deployer@homefit-sh56.iam.gserviceaccount.com" \
     --role="$ROLE"
 done
+```
+
+`roles/artifactregistry.writer` est nécessaire car `gcloud run deploy --source=...` construit l'image
+via Cloud Build puis la pousse dans un dépôt Artifact Registry (`cloud-run-source-deploy`, créé
+automatiquement) — `roles/cloudbuild.builds.editor` seul ne donne pas accès à ce dépôt (erreur
+rencontrée en pratique : `PERMISSION_DENIED` sur `artifactregistry.repositories.get`).
+
+Avant de construire l'image, `gcloud run deploy --source=...` téléverse aussi le code source vers un
+bucket GCS auto-créé (`run-sources-<projet>-<région>`), ce qui nécessite en pratique `roles/storage.admin`
+**au niveau du projet** (déjà inclus dans la liste de rôles ci-dessus) — un binding IAM scopé sur ce
+seul bucket ne suffit pas : `gcloud` fait aussi un appel `storage.buckets.list` **au niveau projet**
+pendant l'étape "Uploading sources", que seul un rôle projet peut satisfaire (rencontré en pratique :
+`PERMISSION_DENIED` sur `storage.buckets.get` puis, une fois corrigé au niveau bucket, sur
+`storage.buckets.list` au niveau projet).
+
+```bash
 
 gcloud iam service-accounts keys create homefit-ci-deployer-key.json \
   --iam-account=homefit-ci-deployer@homefit-sh56.iam.gserviceaccount.com
