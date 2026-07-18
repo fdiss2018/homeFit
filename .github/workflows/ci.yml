@@ -3,6 +3,10 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  # Nécessaire pour que les checks soient rapportés sur main lui-même (pas seulement sur la PR) —
+  # sinon ils n'apparaissent jamais comme sélectionnables dans la protection de branche.
+  push:
+    branches: [main]
 
 jobs:
   test-frontend:
