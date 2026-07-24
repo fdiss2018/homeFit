@@ -86,6 +86,29 @@
     let secondesRestantes = 0, dureeTotalePhase = 0;
     let intervalId = null, enPause = false;
 
+    // Écran de mobile en veille pendant une séance = minuteur qu'on ne voit plus. Le verrou est
+    // automatiquement relâché par le navigateur si l'onglet passe en arrière-plan : on le redemande
+    // au retour, tant que la séance n'est pas terminée.
+    let verrouEcran = null;
+    async function empecherMiseEnVeille() {
+      if (!('wakeLock' in navigator)) return;
+      try {
+        verrouEcran = await navigator.wakeLock.request('screen');
+      } catch {
+        // Refusé (batterie faible, navigateur non compatible...) : dégradation silencieuse.
+      }
+    }
+    async function autoriserMiseEnVeille() {
+      if (!verrouEcran) return;
+      try { await verrouEcran.release(); } catch { /* déjà relâché */ }
+      verrouEcran = null;
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && !els.execution.classList.contains('hidden')) {
+        empecherMiseEnVeille();
+      }
+    });
+
     async function demarrer() {
       const brut = sessionStorage.getItem('hf_execution_seance');
       if (!brut) { els.erreur.classList.remove('hidden'); return; }
@@ -94,6 +117,7 @@
       etapes = construireEtapes(seance);
       els.sousTitre.textContent = seance.nom || 'Séance en cours';
       els.execution.classList.remove('hidden');
+      empecherMiseEnVeille();
 
       const tousLesExercices = await ExerciceService.listerTous();
       exercicesParId = new Map(tousLesExercices.map(ex => [ex.id, ex]));
@@ -196,6 +220,7 @@
       els.execution.classList.add('hidden');
       els.finNomSeance.textContent = seance.nom || 'ta séance';
       els.fin.classList.remove('hidden');
+      autoriserMiseEnVeille();
     }
 
     els.btnPause.addEventListener('click', () => {
