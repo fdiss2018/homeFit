@@ -14,8 +14,17 @@ jobs:
       # sont générés ici, à chaque déploiement, depuis des secrets GitHub. Il n'existe donc plus de
       # fichier local à "oublier de rebasculer" entre dev et prod : la valeur déployée vient
       # toujours de secrets.PROD_API_BASE_URL, jamais d'une copie de travail locale.
+      # Passé par une variable d'environnement (plutôt qu'interpolé directement dans le script) :
+      # ${{ secrets.X }} en interpolation directe fait une substitution textuelle brute avant que
+      # bash ne parse la ligne — si le secret contient lui-même des guillemets (cas normal pour du
+      # JSON/JS), ils entrent en collision avec les guillemets de l'echo et se font supprimer par
+      # bash (bug vécu : firebase-config.js déployé sans aucun guillemet). En passant par $FCJS
+      # entre guillemets, bash ne voit qu'une seule substitution de variable, sans réinterprétation
+      # de son contenu.
       - name: Générer public/firebase-config.js depuis le secret
-        run: echo "${{ secrets.FIREBASE_CONFIG_JS }}" > public/firebase-config.js
+        env:
+          FCJS: ${{ secrets.FIREBASE_CONFIG_JS }}
+        run: printf '%s' "$FCJS" > public/firebase-config.js
 
       - name: Générer public/api-config.js (URL Cloud Run de production)
         run: |
@@ -34,6 +43,14 @@ jobs:
       # réellement servi en production avant que ça casse silencieusement.
       - name: Vérifier que la prod ne pointe jamais vers localhost
         run: curl -fsS https://homefit-sh56.web.app/api-config.js | grep -qv localhost
+
+      # Ferme la boucle révélée par un 2e incident distinct : un firebase-config.js syntaxiquement
+      # invalide (secret mal renseigné, ou bug d'interpolation comme celui corrigé ci-dessus) a été
+      # servi en prod à deux reprises sans qu'aucune vérification ne le détecte.
+      - name: Vérifier que firebase-config.js est du JS valide
+        run: |
+          curl -fsS https://homefit-sh56.web.app/firebase-config.js -o /tmp/firebase-config.mjs
+          node --check /tmp/firebase-config.mjs
 
   deploy-backend:
     runs-on: ubuntu-latest
