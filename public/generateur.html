@@ -48,6 +48,13 @@
       </div>
 
       <div class="champ">
+        <label style="display:inline-flex; align-items:center; gap:8px; text-transform:none">
+          <input type="checkbox" id="avec-illustration">
+          Uniquement les exercices avec illustration 🖼️
+        </label>
+      </div>
+
+      <div class="champ">
         <label for="niveau">Niveau</label>
         <select id="niveau" class="input">
           <option value="debutant">Débutant</option>
@@ -112,6 +119,7 @@
         <select id="filtre-groupe-ajout" class="input" style="margin-bottom:8px">
           <option value="">Tous les groupes musculaires</option>
         </select>
+        <div class="grille-choix" id="choix-illustration-ajout" style="margin-bottom:8px"></div>
         <div id="liste-ajout-exercice" class="liste-ajout"></div>
       </div>
       <div class="champ">
@@ -132,7 +140,7 @@
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE } from './utils/GenerateurSeance.js';
     import { MesSeancesService } from './services/MesSeancesService.js';
-    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
+    import { MATERIEL_DISPONIBLE, LIBELLES, iconeGroupeHtml, FILTRE_ILLUSTRATION_OPTIONS, correspondFiltreIllustration } from './utils/constantes.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     function creerChoix(conteneur, valeurs, avecIcone = false) {
@@ -171,6 +179,7 @@
     const choixPreferenceType = document.getElementById('choix-preference-type');
     const champPreferenceType = document.getElementById('champ-preference-type');
     const checkboxEnchainement = document.getElementById('enchainement-auto');
+    const checkboxAvecIllustration = document.getElementById('avec-illustration');
     creerChoixUnique(choixPreferenceType, 'repetitions');
 
     checkboxEnchainement.addEventListener('change', () => {
@@ -187,10 +196,30 @@
     const msgResultat     = document.getElementById('msg-resultat');
     const nomSeance       = document.getElementById('nom-seance');
     const filtreGroupeAjout = document.getElementById('filtre-groupe-ajout');
+    const choixIllustrationAjout = document.getElementById('choix-illustration-ajout');
     const listeAjoutExercice = document.getElementById('liste-ajout-exercice');
 
     let exercices = [];
     let seanceCourante = null;
+
+    // À choix unique (pas de toggle indépendant) : cliquer un chip désactive les autres. Distinct
+    // de creerChoixUnique ci-dessus, qui câble des boutons déjà présents dans le HTML statique —
+    // ici les boutons sont générés depuis FILTRE_ILLUSTRATION_OPTIONS (constantes.js).
+    function creerChoixIllustration(conteneur, options, valeurParDefaut) {
+      options.forEach(({ valeur, libelle }) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'choix' + (valeur === valeurParDefaut ? ' actif' : '');
+        el.textContent = libelle;
+        el.dataset.valeur = valeur;
+        el.addEventListener('click', () => {
+          conteneur.querySelectorAll('.choix').forEach(e => e.classList.toggle('actif', e === el));
+          afficherListeAjout();
+        });
+        conteneur.appendChild(el);
+      });
+    }
+    creerChoixIllustration(choixIllustrationAjout, FILTRE_ILLUSTRATION_OPTIONS, 'tous');
 
     async function chargerExercices() {
       exercices = await ExerciceService.listerTous();
@@ -201,12 +230,14 @@
 
     function afficherListeAjout() {
       const groupe = filtreGroupeAjout.value;
+      const filtreIllustration = choixIllustrationAjout.querySelector('.choix.actif')?.dataset.valeur;
       const filtres = exercices
         .filter(ex => !groupe || ex.groupeMusculaire === groupe)
+        .filter(ex => correspondFiltreIllustration(ex.image, filtreIllustration))
         .sort((a, b) => a.nom.localeCompare(b.nom));
 
       if (filtres.length === 0) {
-        listeAjoutExercice.innerHTML = '<p class="vide">Aucun exercice pour ce groupe.</p>';
+        listeAjoutExercice.innerHTML = '<p class="vide">Aucun exercice pour ces filtres.</p>';
         return;
       }
 
@@ -356,6 +387,7 @@
         dureeMinutes: parseInt(document.getElementById('duree').value, 10),
         groupesMusculaires: valeursActives(choixGroupes),
         materielDisponible: valeursActives(choixMateriel),
+        avecIllustration: checkboxAvecIllustration.checked,
         niveau: document.getElementById('niveau').value,
         reposEntreSeriesSecondes: parseInt(document.getElementById('repos-series').value, 10),
         reposEntreExercicesSecondes: parseInt(document.getElementById('repos-exercices').value, 10),
@@ -408,6 +440,7 @@
       choixMateriel.querySelectorAll('.choix').forEach(el => {
         el.classList.toggle('actif', criteres.materielDisponible.includes(el.dataset.valeur));
       });
+      checkboxAvecIllustration.checked = criteres.avecIllustration;
       choixPreferenceType.querySelectorAll('.choix').forEach(el => {
         el.classList.toggle('actif', el.dataset.valeur === criteres.preferenceType);
       });

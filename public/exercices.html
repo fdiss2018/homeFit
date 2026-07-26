@@ -28,6 +28,10 @@
         <label>Matériel <span style="text-transform:none">(vide = tous)</span></label>
         <div class="grille-choix" id="choix-materiel"></div>
       </div>
+      <div class="champ" style="margin-top:14px; margin-bottom:0">
+        <label>Illustration</label>
+        <div class="grille-choix" id="choix-illustration"></div>
+      </div>
     </div>
 
     <div id="liste-exercices">
@@ -40,13 +44,17 @@
     import { ADMIN_EMAIL } from './auth-config.js';
     import { ExerciceService } from './services/ExerciceService.js';
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
-    import { MATERIEL_DISPONIBLE, LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml } from './utils/constantes.js';
+    import {
+      MATERIEL_DISPONIBLE, LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml,
+      SANS_MATERIEL, correspondFiltreMateriel, FILTRE_ILLUSTRATION_OPTIONS, correspondFiltreIllustration
+    } from './utils/constantes.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     const listeEl = document.getElementById('liste-exercices');
     const rechercheEl = document.getElementById('recherche');
     const choixGroupes = document.getElementById('choix-groupes');
     const choixMateriel = document.getElementById('choix-materiel');
+    const choixIllustration = document.getElementById('choix-illustration');
     let tousLesExercices = [];
 
     function creerChoix(conteneur, valeurs, avecIcone = false) {
@@ -61,10 +69,31 @@
       });
     }
     creerChoix(choixGroupes, GROUPES_MUSCULAIRES, true);
-    creerChoix(choixMateriel, MATERIEL_DISPONIBLE);
+    creerChoix(choixMateriel, [...MATERIEL_DISPONIBLE, SANS_MATERIEL]);
+
+    // À choix unique (pas de toggle indépendant) : cliquer un chip désactive les autres.
+    function creerChoixUnique(conteneur, options, valeurParDefaut) {
+      options.forEach(({ valeur, libelle }) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'choix' + (valeur === valeurParDefaut ? ' actif' : '');
+        el.textContent = libelle;
+        el.dataset.valeur = valeur;
+        el.addEventListener('click', () => {
+          conteneur.querySelectorAll('.choix').forEach(e => e.classList.toggle('actif', e === el));
+          filtrer();
+        });
+        conteneur.appendChild(el);
+      });
+    }
+    creerChoixUnique(choixIllustration, FILTRE_ILLUSTRATION_OPTIONS, 'tous');
 
     function valeursActives(conteneur) {
       return [...conteneur.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur);
+    }
+
+    function valeurActiveUnique(conteneur) {
+      return conteneur.querySelector('.choix.actif')?.dataset.valeur;
     }
 
     function normaliser(texte) {
@@ -104,11 +133,13 @@
       const terme = normaliser(rechercheEl.value.trim());
       const groupes = valeursActives(choixGroupes);
       const materiels = valeursActives(choixMateriel);
+      const filtreIllustration = valeurActiveUnique(choixIllustration);
 
       const filtres = tousLesExercices.filter(ex => {
         if (terme && !normaliser(ex.nom).includes(terme) && !normaliser(ex.groupeMusculaire).includes(terme)) return false;
         if (groupes.length && !groupes.includes(ex.groupeMusculaire)) return false;
-        if (materiels.length && !(ex.materiel || []).some(m => materiels.includes(m))) return false;
+        if (!correspondFiltreMateriel(ex.materiel, materiels)) return false;
+        if (!correspondFiltreIllustration(ex.image, filtreIllustration)) return false;
         return true;
       });
       afficher(filtres);

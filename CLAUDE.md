@@ -133,8 +133,9 @@ Un **Exercice** appartient à un **groupe musculaire**, nécessite éventuelleme
 pouvoir être exprimé dans l'un ou l'autre mode selon les critères de génération de la séance.
 
 Une **Seance** est générée à partir de **critères** (durée souhaitée, groupes musculaires ciblés, matériel
-disponible, niveau, repos entre séries, repos entre exercices, préférence répétitions/durée, enchaînement
-automatique) : elle contient une liste de **blocs** (exercice + nombre de séries + valeur d'effort + temps
+disponible, présence d'une illustration, niveau, repos entre séries, repos entre exercices, préférence
+répétitions/durée, enchaînement automatique) : elle contient une liste de **blocs** (exercice + nombre de
+séries + valeur d'effort + temps
 de repos) dont la durée totale estimée approche la durée demandée. Chaque bloc distingue deux temps de
 repos : `reposSecondes` (entre les séries d'un même exercice) et `reposApresSecondes` (après le dernier
 exercice, avant de passer au suivant). Les valeurs de chaque bloc (séries, valeur, les deux repos) peuvent
@@ -150,9 +151,10 @@ même façon en modification sur `mes-seances.html`.
 - `Seance` — `id`, `date`, `nom`, `criteres`, `blocs[]`
   (`{ exercice, series, valeur, type, reposSecondes, reposApresSecondes }`), `dureeEstimeeMinutes`
 - `GenerateurSeance.filtrerExercices(exercices, criteres)` (backend uniquement, `backend/src/domain/`)
-  — filtre par niveau (un niveau donné inclut les niveaux plus faciles), groupe musculaire (vide = tous)
-  et matériel (un exercice sans matériel passe toujours ; sinon tout le matériel requis doit être
-  disponible)
+  — filtre par niveau (un niveau donné inclut les niveaux plus faciles), groupe musculaire (vide = tous),
+  matériel (un exercice sans matériel passe toujours ; sinon tout le matériel requis doit être
+  disponible) et, si `criteres.avecIllustration` est vrai, présence d'une illustration (`exercice.image`
+  non vide)
 - `GenerateurSeance.genererSeance(exercices, criteres)` (backend uniquement) — mélange les exercices
   éligibles et pioche des blocs (3 séries ; repos entre séries, repos entre exercices et type/valeur
   pilotés par `criteres.reposEntreSeriesSecondes` / `criteres.reposEntreExercicesSecondes` /
@@ -256,8 +258,8 @@ aucune dépendance au SDK Firestore, ni aux règles de sécurité Firestore (cel
   "date": "ISO string",
   "nom": "Séance jambes du lundi",
   "criteres": {
-    "dureeMinutes": 20, "groupesMusculaires": [], "materielDisponible": [], "niveau": "intermediaire",
-    "reposEntreSeriesSecondes": 30, "reposEntreExercicesSecondes": 60,
+    "dureeMinutes": 20, "groupesMusculaires": [], "materielDisponible": [], "avecIllustration": false,
+    "niveau": "intermediaire", "reposEntreSeriesSecondes": 30, "reposEntreExercicesSecondes": 60,
     "preferenceType": "repetitions", "enchainementAutomatique": false
   },
   "dureeEstimeeMinutes": 22,
@@ -348,7 +350,15 @@ n'est pas satisfait.
   modèle). Si l'IA ne sélectionne finalement aucun exercice valide, l'appel échoue explicitement
   (message clair côté front) plutôt que de renvoyer une séance vide. Réutilise `validerCriteresIA()`
   (`InterpreterDemandeIA.js`) pour valider les critères des deux appels. Logique pure, testée sans
-  réseau (`backend/tests/InterpreterSeanceIA.test.js`).
+  réseau (`backend/tests/InterpreterSeanceIA.test.js`). Le prompt du premier appel précise
+  explicitement que `materielDisponible` doit rester un tableau vide aussi bien par défaut que si
+  l'utilisateur dit explicitement ne pas avoir de matériel ("sans matériel", "pas d'équipement") —
+  les deux cas produisaient déjà la même valeur par accident, désormais garanti par instruction
+  explicite plutôt que par un défaut qui se trouve coïncider. `criteres.avecIllustration` (booléen,
+  `false` par défaut) restreint la sélection aux exercices ayant une illustration
+  (`GenerateurSeance.filtrerExercices`) — ajouté au schéma des deux appels (celui du second reste
+  ignoré par `GeminiClient`, voir la note sur la stabilité du modèle plus bas, mais les deux schémas
+  sont volontairement gardés identiques).
 - `backend/src/domain/InterpreterExerciceIA.js` : même principe de schéma forcé + validation sans
   confiance aveugle, mais pour un **tableau** de propositions plutôt qu'une fiche unique.
   `construireRequeteExercicesIA(description, exercicesDisponibles)` fournit le catalogue existant
@@ -645,6 +655,21 @@ voir **`GOOGLE.md`**.
   d'exercice — contre les ids Firestore existants) et permet de les supprimer individuellement ou en
   masse (`DELETE /api/exercices/images-orphelines/:nom`). Téléchargement volontairement pas encore
   traité : recoupe l'export JSON existant (qui n'exporte pas les images), à revoir ensemble plus tard
+
+### ✅ Étape 3.8 — Filtres illustration/matériel, y compris dans la génération par IA
+- Filtre "Illustration" (choix unique : toutes/avec/sans, `FILTRE_ILLUSTRATION_OPTIONS` +
+  `correspondFiltreIllustration`, `public/utils/constantes.js`) ajouté partout où un exercice se
+  sélectionne côté navigation : `admin.html`, `exercices.html`, et les pickers d'ajout d'exercice de
+  `generateur.html`/`mes-seances.html`
+- Filtre "Sans matériel" (`SANS_MATERIEL`, pseudo-valeur ajoutée aux chips matériel existants,
+  `correspondFiltreMateriel`) ajouté aux filtres matériel déjà présents (`admin.html`,
+  `exercices.html`) — n'a pas de sens dans les critères de génération, où matériel vide signifie déjà
+  "poids du corps uniquement" (voir plus bas)
+- Ces filtres de navigation sont purement côté client (jamais transmis au backend) — pour que la
+  génération de séance (manuelle ou par IA) en tienne aussi compte, `criteres.avecIllustration`
+  (booléen, nouvelle case dans `generateur.html`) a été ajouté à `GenerateurSeance.filtrerExercices`
+  et au schéma des deux appels Gemini (voir "Assistant IA" plus haut) — pas de champ équivalent pour
+  "sans matériel" côté génération, déjà représenté nativement par `materielDisponible: []`
 
 ### 🔜 Étape 4 — Suivi de progression
 - Statistiques par exercice (progression du nombre de reps/temps dans la durée)

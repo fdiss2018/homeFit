@@ -29,6 +29,7 @@ export function validerCriteresIA(brut) {
     dureeMinutes: plusProche(brut?.dureeMinutes, DUREES_DISPONIBLES, 20),
     groupesMusculaires,
     materielDisponible,
+    avecIllustration: brut?.avecIllustration === true,
     niveau: NIVEAUX.includes(brut?.niveau) ? brut.niveau : 'intermediaire',
     preferenceType: brut?.preferenceType === 'duree' ? 'duree' : 'repetitions',
     enchainementAutomatique: brut?.enchainementAutomatique === true,

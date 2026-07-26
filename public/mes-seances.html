@@ -45,7 +45,7 @@
     import { GROUPES_MUSCULAIRES } from './models/Exercice.js';
     import { Seance } from './models/Seance.js';
     import { calculerDureeEstimeeMinutes, SERIES_PAR_EXERCICE, REPOS_ENTRE_SERIES } from './utils/GenerateurSeance.js';
-    import { LIBELLES, iconeGroupeHtml } from './utils/constantes.js';
+    import { LIBELLES, iconeGroupeHtml, FILTRE_ILLUSTRATION_OPTIONS, correspondFiltreIllustration } from './utils/constantes.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
 
     const listeEl = document.getElementById('liste-seances');
@@ -60,6 +60,7 @@
     let idEnEdition = null;
     let seanceEnEdition = null;
     let filtreGroupeEdition = '';
+    let filtreIllustrationEdition = 'tous';
 
     function formatDate(iso) {
       const d = new Date(iso);
@@ -180,8 +181,13 @@
       const optionsGroupes = '<option value="">Tous les groupes musculaires</option>' +
         GROUPES_MUSCULAIRES.map(g => `<option value="${g}" ${g === filtreGroupeEdition ? 'selected' : ''}>${LIBELLES[g] || g}</option>`).join('');
 
+      const choixIllustrationHtml = FILTRE_ILLUSTRATION_OPTIONS.map(({ valeur, libelle }) => `
+        <button type="button" class="choix choix-illustration-edition ${valeur === filtreIllustrationEdition ? 'actif' : ''}" data-valeur="${valeur}">${libelle}</button>
+      `).join('');
+
       const lignesAjout = tousLesExercices
         .filter(ex => !filtreGroupeEdition || ex.groupeMusculaire === filtreGroupeEdition)
+        .filter(ex => correspondFiltreIllustration(ex.image, filtreIllustrationEdition))
         .sort((a, b) => a.nom.localeCompare(b.nom))
         .map(ex => `
           <div class="ligne-ajout-exercice" data-id="${ex.id}">
@@ -192,7 +198,7 @@
             </div>
             <button class="btn-ajout-ligne" type="button" title="Ajouter">➕</button>
           </div>
-        `).join('') || '<p class="vide">Aucun exercice pour ce groupe.</p>';
+        `).join('') || '<p class="vide">Aucun exercice pour ces filtres.</p>';
 
       const blocsHtml = seanceEnEdition.blocs.map((bloc, i) => {
         const unite = bloc.type === 'duree' ? 's' : 'reps';
@@ -230,6 +236,7 @@
         <div class="champ">
           <label>Ajouter un exercice</label>
           <select class="input select-groupe-edition" style="margin-bottom:8px">${optionsGroupes}</select>
+          <div class="grille-choix" style="margin-bottom:8px">${choixIllustrationHtml}</div>
           <div class="liste-ajout">${lignesAjout}</div>
         </div>
         <div style="display:flex; gap:10px; margin-top:12px">
@@ -243,6 +250,7 @@
     function entrerEnEdition(seance) {
       idEnEdition = seance.id;
       filtreGroupeEdition = '';
+      filtreIllustrationEdition = 'tous';
       seanceEnEdition = new Seance({
         id: seance.id,
         date: seance.date,
@@ -287,6 +295,13 @@
     }
 
     listeEl.addEventListener('click', async e => {
+      const choixIllustration = e.target.closest('.choix-illustration-edition');
+      if (choixIllustration) {
+        filtreIllustrationEdition = choixIllustration.dataset.valeur;
+        renderListe();
+        return;
+      }
+
       const boutonSupprBloc = e.target.closest('.btn-suppr-bloc-edition');
       if (boutonSupprBloc) {
         seanceEnEdition.blocs.splice(parseInt(boutonSupprBloc.dataset.index, 10), 1);

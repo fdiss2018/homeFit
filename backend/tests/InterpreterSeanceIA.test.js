@@ -21,11 +21,29 @@ describe('construireRequeteCriteresIA', () => {
     expect(requete.contents[0].parts[0].text).toContain('20 minutes, jambes, débutant');
   });
 
-  it('désactive le thinking et force une sortie JSON conforme au schéma des critères', () => {
+  it('force une sortie JSON conforme au schéma des critères', () => {
     const requete = construireRequeteCriteresIA('peu importe');
     expect(requete.generationConfig.responseMimeType).toBe('application/json');
-    expect(requete.generationConfig.thinkingConfig).toEqual({ thinkingBudget: 0 });
     expect(requete.generationConfig.responseSchema.required).toEqual(['dureeMinutes', 'niveau']);
+  });
+
+  // Régression : thinkingConfig a été retiré des deux appels (voir commentaire détaillé dans
+  // InterpreterSeanceIA.js) — le modèle actuel derrière l'alias GEMINI_MODEL le rejette avec une
+  // erreur 400, cassant entièrement la génération de séance par IA. Confirmé par appel réel contre
+  // l'API (pas seulement ce test) ; ne pas le réintroduire sans revalider contre l'API réelle.
+  it('ne définit pas thinkingConfig (rejeté par le modèle actuel)', () => {
+    expect(construireRequeteCriteresIA('peu importe').generationConfig.thinkingConfig).toBeUndefined();
+  });
+
+  it('déclare avecIllustration en BOOLEAN dans le schéma', () => {
+    const requete = construireRequeteCriteresIA('peu importe');
+    expect(requete.generationConfig.responseSchema.properties.avecIllustration).toEqual({ type: 'BOOLEAN' });
+  });
+
+  it('instruit explicitement que "sans matériel"/"pas d\'équipement" doit donner un tableau vide', () => {
+    const texte = construireRequeteCriteresIA('peu importe').contents[0].parts[0].text;
+    expect(texte).toContain('sans matériel');
+    expect(texte).toContain('pas d\'équipement');
   });
 });
 
@@ -53,12 +71,19 @@ describe('construireRequeteSeanceIA', () => {
     expect(requete.generationConfig.responseSchema.properties.criteres.required).toEqual(['dureeMinutes', 'niveau']);
   });
 
-  it('force "exerciceId" en STRING (jamais INTEGER, jamais enum) et désactive le thinking', () => {
+  it('force "exerciceId" en STRING (jamais INTEGER, jamais enum) et ne définit pas thinkingConfig', () => {
     const exercices = [creerExercice({ id: 'ex-1' }), creerExercice({ id: 'ex-2' })];
     const requete = construireRequeteSeanceIA('peu importe', exercices);
-    expect(requete.generationConfig.thinkingConfig).toEqual({ thinkingBudget: 0 });
+    expect(requete.generationConfig.thinkingConfig).toBeUndefined();
     expect(requete.generationConfig.responseSchema.properties.blocs.items.properties.exerciceId)
       .toEqual({ type: 'STRING' });
+  });
+
+  it('garde le schéma "criteres" des deux appels strictement identique (invariant de stabilité)', () => {
+    const schemaPremierAppel = construireRequeteCriteresIA('peu importe').generationConfig.responseSchema.properties;
+    const schemaCriteresSecondAppel = construireRequeteSeanceIA('peu importe', [creerExercice()])
+      .generationConfig.responseSchema.properties.criteres.properties;
+    expect(schemaCriteresSecondAppel).toEqual(schemaPremierAppel);
   });
 });
 
