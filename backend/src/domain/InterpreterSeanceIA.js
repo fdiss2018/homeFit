@@ -40,6 +40,7 @@ Réponds UNIQUEMENT avec un objet JSON de cette forme (exemple) :
   "dureeMinutes": 20,
   "groupesMusculaires": ["quadriceps", "abdominaux"],
   "materielDisponible": [],
+  "avecIllustration": false,
   "niveau": "intermediaire",
   "preferenceType": "repetitions",
   "enchainementAutomatique": false,
@@ -50,10 +51,16 @@ Réponds UNIQUEMENT avec un objet JSON de cette forme (exemple) :
 Règles à respecter :
 - "groupesMusculaires" : uniquement des valeurs parmi ${GROUPES_MUSCULAIRES.join(', ')} — tableau
   vide si la description ne cible aucun groupe en particulier (séance complète/full-body).
-- "materielDisponible" : uniquement des valeurs parmi ${MATERIEL_DISPONIBLE.join(', ')}.
+- "materielDisponible" : uniquement des valeurs parmi ${MATERIEL_DISPONIBLE.join(', ')} — tableau
+  vide aussi bien par défaut que si l'utilisateur dit explicitement qu'il n'a pas de matériel / est
+  chez lui sans équipement / veut une séance au poids du corps uniquement (ex. "sans matériel",
+  "pas d'équipement", "à mains nues") : dans les deux cas, tableau vide.
+- "avecIllustration" : true UNIQUEMENT si l'utilisateur demande explicitement des exercices
+  illustrés/avec image/avec schéma du mouvement ; false sinon (valeur par défaut).
 - "niveau" : une valeur parmi ${NIVEAUX.join(', ')}.
 - Si un champ n'est pas précisé dans la description, choisis une valeur par défaut raisonnable
-  (durée 20 minutes, niveau intermédiaire, aucun groupe ciblé, aucun matériel, repos moyens).
+  (durée 20 minutes, niveau intermédiaire, aucun groupe ciblé, aucun matériel, pas d'exigence
+  d'illustration, repos moyens).
 - Des repos plus courts (10-20s) conviennent à une séance dynamique/cardio ; plus longs (60-90s) à
   une séance orientée force.
 
@@ -66,16 +73,20 @@ Demande de l'utilisateur : "${description}"`;
       // Petite sortie structurée, sans catalogue : plafond bas, coût minime même en cas de retry.
       maxOutputTokens: 512,
       temperature: 0.3,
-      // Le raisonnement invisible ("thinking") des modèles Gemini récents n'apporte rien sur une
-      // extraction de critères aussi simple et consomme des tokens en plus — désactivé (mesuré :
-      // aucun impact négatif sur cet appel, thoughtsTokenCount reste à 0 avec ou sans ce champ).
-      thinkingConfig: { thinkingBudget: 0 },
+      // ⚠️ thinkingConfig: { thinkingBudget: 0 } a longtemps été présent ici (désactivation du
+      // raisonnement invisible, sans impact négatif mesuré à l'époque) — retiré : le modèle
+      // derrière l'alias GEMINI_MODEL a changé (résout désormais vers une version plus récente,
+      // ex. gemini-3.5-flash-lite) et rejette ce champ avec une erreur 400 "Request contains an
+      // invalid argument", cassant entièrement la génération de séance par IA. Mesuré empiriquement
+      // (appel réel) : la requête réussit dès que ce champ est absent. Ne pas le réintroduire sans
+      // revalider contre l'API réelle.
       responseSchema: {
         type: 'OBJECT',
         properties: {
           dureeMinutes: { type: 'INTEGER' },
           groupesMusculaires: { type: 'ARRAY', items: { type: 'STRING', enum: GROUPES_MUSCULAIRES } },
           materielDisponible: { type: 'ARRAY', items: { type: 'STRING', enum: MATERIEL_DISPONIBLE } },
+          avecIllustration: { type: 'BOOLEAN' },
           niveau: { type: 'STRING', enum: NIVEAUX },
           preferenceType: { type: 'STRING', enum: ['repetitions', 'duree'] },
           enchainementAutomatique: { type: 'BOOLEAN' },
@@ -166,9 +177,8 @@ Demande de l'utilisateur : "${description}"`;
       // Réduit (température par défaut plus élevée) car empiriquement plus stable sur cette
       // sortie structurée — moins de risque de dérive vers une génération dégénérée.
       temperature: 0.3,
-      // Sans impact mesuré sur ce schéma (déjà stable), gardé par cohérence/économie avec le
-      // premier appel — voir construireRequeteCriteresIA.
-      thinkingConfig: { thinkingBudget: 0 },
+      // thinkingConfig retiré ici aussi — voir la note détaillée dans construireRequeteCriteresIA
+      // (rejeté avec 400 par le modèle actuel derrière l'alias GEMINI_MODEL).
       responseSchema: {
         type: 'OBJECT',
         properties: {
@@ -180,6 +190,7 @@ Demande de l'utilisateur : "${description}"`;
               dureeMinutes: { type: 'INTEGER' },
               groupesMusculaires: { type: 'ARRAY', items: { type: 'STRING', enum: GROUPES_MUSCULAIRES } },
               materielDisponible: { type: 'ARRAY', items: { type: 'STRING', enum: MATERIEL_DISPONIBLE } },
+              avecIllustration: { type: 'BOOLEAN' },
               niveau: { type: 'STRING', enum: NIVEAUX },
               preferenceType: { type: 'STRING', enum: ['repetitions', 'duree'] },
               enchainementAutomatique: { type: 'BOOLEAN' },

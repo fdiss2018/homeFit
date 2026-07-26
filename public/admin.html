@@ -128,6 +128,10 @@
         <label>Matériel <span style="text-transform:none">(vide = tous)</span></label>
         <div class="grille-choix" id="choix-materiel-admin"></div>
       </div>
+      <div class="champ" style="margin-top:14px">
+        <label>Illustration</label>
+        <div class="grille-choix" id="choix-illustration-admin"></div>
+      </div>
 
       <button id="btn-tout-supprimer" class="btn-danger">🗑️ Tout supprimer</button>
       <p id="msg-suppr-tout" class="msg hidden"></p>
@@ -145,7 +149,10 @@
     import { Exercice, GROUPES_MUSCULAIRES, NIVEAUX } from './models/Exercice.js';
     import { ExerciceService } from './services/ExerciceService.js';
     import { activerClicDetailExercice } from './utils/ModaleExercice.js';
-    import { MATERIEL_DISPONIBLE, LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml } from './utils/constantes.js';
+    import {
+      MATERIEL_DISPONIBLE, LIBELLES, NIVEAU_LIBELLE, iconeGroupeHtml,
+      SANS_MATERIEL, correspondFiltreMateriel, FILTRE_ILLUSTRATION_OPTIONS, correspondFiltreIllustration
+    } from './utils/constantes.js';
 
     const btnLogout = document.getElementById('btn-logout');
 
@@ -210,6 +217,7 @@
     const rechercheAdmin = document.getElementById('recherche-admin');
     const choixGroupesAdmin = document.getElementById('choix-groupes-admin');
     const choixMaterielAdmin = document.getElementById('choix-materiel-admin');
+    const choixIllustrationAdmin = document.getElementById('choix-illustration-admin');
 
     function creerChoixAdmin(conteneur, valeurs, avecIcone = false) {
       valeurs.forEach(valeur => {
@@ -223,10 +231,31 @@
       });
     }
     creerChoixAdmin(choixGroupesAdmin, GROUPES_MUSCULAIRES, true);
-    creerChoixAdmin(choixMaterielAdmin, MATERIEL_DISPONIBLE);
+    creerChoixAdmin(choixMaterielAdmin, [...MATERIEL_DISPONIBLE, SANS_MATERIEL]);
+
+    // À choix unique (pas de toggle indépendant) : cliquer un chip désactive les autres.
+    function creerChoixUnique(conteneur, options, valeurParDefaut) {
+      options.forEach(({ valeur, libelle }) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'choix' + (valeur === valeurParDefaut ? ' actif' : '');
+        el.textContent = libelle;
+        el.dataset.valeur = valeur;
+        el.addEventListener('click', () => {
+          conteneur.querySelectorAll('.choix').forEach(e => e.classList.toggle('actif', e === el));
+          filtrerEtAfficherListe();
+        });
+        conteneur.appendChild(el);
+      });
+    }
+    creerChoixUnique(choixIllustrationAdmin, FILTRE_ILLUSTRATION_OPTIONS, 'tous');
 
     function valeursActivesAdmin(conteneur) {
       return [...conteneur.querySelectorAll('.choix.actif')].map(el => el.dataset.valeur);
+    }
+
+    function valeurActiveUnique(conteneur) {
+      return conteneur.querySelector('.choix.actif')?.dataset.valeur;
     }
 
     function normaliserAdmin(texte) {
@@ -239,11 +268,13 @@
       const terme = normaliserAdmin(rechercheAdmin.value.trim());
       const groupes = valeursActivesAdmin(choixGroupesAdmin);
       const materiels = valeursActivesAdmin(choixMaterielAdmin);
+      const filtreIllustration = valeurActiveUnique(choixIllustrationAdmin);
 
       const filtres = exercicesActuels.filter(ex => {
         if (terme && !normaliserAdmin(ex.nom).includes(terme) && !normaliserAdmin(ex.groupeMusculaire).includes(terme)) return false;
         if (groupes.length && !groupes.includes(ex.groupeMusculaire)) return false;
-        if (materiels.length && !(ex.materiel || []).some(m => materiels.includes(m))) return false;
+        if (!correspondFiltreMateriel(ex.materiel, materiels)) return false;
+        if (!correspondFiltreIllustration(ex.image, filtreIllustration)) return false;
         return true;
       });
 

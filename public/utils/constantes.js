@@ -13,11 +13,42 @@ export const LIBELLES = {
   pectoraux: 'Pectoraux', epaules: 'Épaules', biceps: 'Biceps', triceps: 'Triceps', 'avant-bras': 'Avant-bras',
   abdominaux: 'Abdominaux', obliques: 'Obliques',
   cardio: 'Cardio', 'full-body': 'Full-body',
-  halteres: 'Haltères', tapis: 'Tapis', banc: 'Banc', elastique: 'Élastique', kettlebell: 'Kettlebell'
+  halteres: 'Haltères', tapis: 'Tapis', banc: 'Banc', elastique: 'Élastique', kettlebell: 'Kettlebell',
+  aucun: 'Sans matériel'
 };
 
 // Libellés d'affichage des niveaux (exercices.html, ModaleExercice.js).
 export const NIVEAU_LIBELLE = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
+
+// Pseudo-valeur de filtre (pas une vraie valeur de matériel) : exercices au poids du corps, dont le
+// tableau materiel est vide. Ajoutée uniquement aux filtres de bibliothèque (admin.html,
+// exercices.html) — n'a pas de sens dans les chips décrivant le matériel requis PAR un exercice
+// (formulaire admin, cartes IA) ni dans les critères de génération (y laisser matériel vide y
+// signifie déjà "seulement poids du corps", voir GenerateurSeance.filtrerExercices).
+export const SANS_MATERIEL = 'aucun';
+
+export function correspondFiltreMateriel(materielExercice, materielsSelectionnes) {
+  if (materielsSelectionnes.length === 0) return true;
+  const materiel = materielExercice || [];
+  if (materiel.length === 0) return materielsSelectionnes.includes(SANS_MATERIEL);
+  return materiel.some(m => materielsSelectionnes.includes(m));
+}
+
+// Filtre à choix unique (pas un multi-sélect comme groupes/matériel) : une illustration existe,
+// n'existe pas, ou peu importe. Options centralisées pour un libellé identique partout où ce filtre
+// apparaît (admin.html, admin-images.html non concerné, exercices.html, generateur.html,
+// mes-seances.html).
+export const FILTRE_ILLUSTRATION_OPTIONS = [
+  { valeur: 'tous', libelle: 'Toutes' },
+  { valeur: 'avec', libelle: '🖼️ Avec illustration' },
+  { valeur: 'sans', libelle: '🚫 Sans illustration' }
+];
+
+export function correspondFiltreIllustration(image, filtre) {
+  if (filtre === 'avec') return !!image;
+  if (filtre === 'sans') return !image;
+  return true;
+}
 
 // Pictogrammes anatomiques par groupe musculaire (public/images/groupes/). cardio et full-body
 // n'ont pas de muscle unique à représenter : repli sur un emoji.

@@ -10,6 +10,7 @@ describe('validerCriteresIA', () => {
       dureeMinutes: 30,
       groupesMusculaires: ['quadriceps', 'abdominaux'],
       materielDisponible: ['halteres'],
+      avecIllustration: true,
       niveau: 'avance',
       preferenceType: 'duree',
       enchainementAutomatique: true,
@@ -20,6 +21,7 @@ describe('validerCriteresIA', () => {
       dureeMinutes: 30,
       groupesMusculaires: ['quadriceps', 'abdominaux'],
       materielDisponible: ['halteres'],
+      avecIllustration: true,
       niveau: 'avance',
       preferenceType: 'duree',
       enchainementAutomatique: true,
@@ -33,6 +35,7 @@ describe('validerCriteresIA', () => {
       dureeMinutes: 20,
       groupesMusculaires: [],
       materielDisponible: [],
+      avecIllustration: false,
       niveau: 'intermediaire',
       preferenceType: 'repetitions',
       enchainementAutomatique: false,
@@ -40,6 +43,12 @@ describe('validerCriteresIA', () => {
       reposEntreExercicesSecondes: 60
     });
     expect(validerCriteresIA(null)).toEqual(validerCriteresIA({}));
+  });
+
+  it('ne retient avecIllustration que si la valeur est exactement true', () => {
+    expect(validerCriteresIA({ avecIllustration: 'oui' }).avecIllustration).toBe(false);
+    expect(validerCriteresIA({ avecIllustration: 1 }).avecIllustration).toBe(false);
+    expect(validerCriteresIA({ avecIllustration: true }).avecIllustration).toBe(true);
   });
 
   it('ignore les groupes musculaires ou le matériel hallucinés (hors vocabulaire connu)', () => {

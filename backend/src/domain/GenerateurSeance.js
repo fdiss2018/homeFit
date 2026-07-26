@@ -43,8 +43,9 @@ function melanger(tableau) {
 }
 
 // Filtre la bibliothèque selon le niveau (un niveau donné inclut les niveaux
-// plus faciles), les groupes musculaires ciblés (vide = tous) et le matériel
-// disponible (un exercice ne nécessitant aucun matériel passe toujours).
+// plus faciles), les groupes musculaires ciblés (vide = tous), le matériel
+// disponible (un exercice ne nécessitant aucun matériel passe toujours) et,
+// si demandé, la présence d'une illustration.
 export function filtrerExercices(exercices, criteres) {
   const niveauMax = RANG_NIVEAU[criteres.niveau] || RANG_NIVEAU.avance;
   const materielDispo = new Set(criteres.materielDisponible || []);
@@ -53,14 +54,15 @@ export function filtrerExercices(exercices, criteres) {
     if (RANG_NIVEAU[ex.niveau] > niveauMax) return false;
     if (criteres.groupesMusculaires?.length && !criteres.groupesMusculaires.includes(ex.groupeMusculaire)) return false;
     if (ex.materiel?.length && !ex.materiel.every(m => materielDispo.has(m))) return false;
+    if (criteres.avecIllustration && !ex.image) return false;
     return true;
   });
 }
 
 // Génère une séance en piochant (sans répétition tant que possible) dans la
 // bibliothèque filtrée, jusqu'à atteindre la durée cible demandée.
-// criteres : { dureeMinutes, groupesMusculaires: [], materielDisponible: [], niveau,
-//              reposEntreSeriesSecondes?, reposEntreExercicesSecondes?, preferenceType?,
+// criteres : { dureeMinutes, groupesMusculaires: [], materielDisponible: [], avecIllustration?,
+//              niveau, reposEntreSeriesSecondes?, reposEntreExercicesSecondes?, preferenceType?,
 //              enchainementAutomatique? }
 export function genererSeance(exercicesDisponibles, criteres) {
   const exercicesEligibles = filtrerExercices(exercicesDisponibles, criteres);

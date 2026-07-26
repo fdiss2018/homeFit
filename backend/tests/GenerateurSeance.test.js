@@ -66,6 +66,24 @@ describe('filtrerExercices', () => {
     const resultat = filtrerExercices(exercices, { niveau: 'avance', materielDisponible: ['halteres', 'tapis'] });
     expect(resultat).toHaveLength(1);
   });
+
+  it('exclut un exercice sans illustration quand avecIllustration est demandé', () => {
+    const exercices = [creerExercice({ id: 'sans-image', image: '' })];
+    const resultat = filtrerExercices(exercices, { niveau: 'avance', avecIllustration: true });
+    expect(resultat).toHaveLength(0);
+  });
+
+  it('inclut un exercice avec illustration quand avecIllustration est demandé', () => {
+    const exercices = [creerExercice({ id: 'avec-image', image: 'https://example.com/img.jpg' })];
+    const resultat = filtrerExercices(exercices, { niveau: 'avance', avecIllustration: true });
+    expect(resultat).toHaveLength(1);
+  });
+
+  it("n'applique aucun filtre d'illustration quand avecIllustration est absent ou faux", () => {
+    const exercices = [creerExercice({ id: 'sans-image', image: '' }), creerExercice({ id: 'avec-image', image: 'x.jpg' })];
+    expect(filtrerExercices(exercices, { niveau: 'avance' })).toHaveLength(2);
+    expect(filtrerExercices(exercices, { niveau: 'avance', avecIllustration: false })).toHaveLength(2);
+  });
 });
 
 describe('genererSeance', () => {
