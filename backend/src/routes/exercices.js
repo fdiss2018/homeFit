@@ -31,6 +31,7 @@ exercicesRouter.put('/:id', requireAdmin, async (req, res, next) => {
 exercicesRouter.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     await ExerciceRepository.supprimer(req.params.id);
+    await ImageRepository.supprimer(req.params.id);
     res.status(204).end();
   } catch (err) { next(err); }
 });
@@ -50,6 +51,24 @@ exercicesRouter.delete('/:id/image', requireAdmin, async (req, res, next) => {
   try {
     await ImageRepository.supprimer(req.params.id);
     await ExerciceRepository.mettreAJourImage(req.params.id, '');
+    res.status(204).end();
+  } catch (err) { next(err); }
+});
+
+// Images du bucket dont le nom (dérivé d'un id d'exercice, voir ImageRepository) ne correspond à
+// aucun exercice existant — peut arriver après une suppression antérieure au correctif ci-dessus,
+// ou un import/suppression manuelle directement dans Storage.
+exercicesRouter.get('/images-orphelines', requireAdmin, async (req, res, next) => {
+  try {
+    const exercices = await ExerciceRepository.listerTous();
+    const idsValides = new Set(exercices.map(ex => ex.id));
+    res.json(await ImageRepository.listerOrphelines(idsValides));
+  } catch (err) { next(err); }
+});
+
+exercicesRouter.delete('/images-orphelines/:nom', requireAdmin, async (req, res, next) => {
+  try {
+    await ImageRepository.supprimerOrpheline(req.params.nom);
     res.status(204).end();
   } catch (err) { next(err); }
 });

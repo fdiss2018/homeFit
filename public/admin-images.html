@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeFit - Images orphelines</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="entete">
+    <h1>🖼️ Images orphelines</h1>
+    <p>Images stockées sans exercice associé.</p>
+    <button id="btn-logout" class="btn-secondaire hidden" style="margin-top:10px">Déconnexion</button>
+  </header>
+
+  <main>
+    <a href="admin.html" class="lien-retour">← Retour à l'administration</a>
+
+    <div class="carte">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <p class="carte-titre" style="margin:0">Images sans exercice associé</p>
+        <span id="compte-images" class="carte-desc" style="margin:0"></span>
+      </div>
+      <p class="carte-desc">Une image devient orpheline si l'exercice associé a été supprimé sans
+        passer par la suppression de son image (ex. import/suppression manuelle dans Firebase
+        Storage, ou exercice supprimé avant que la purge automatique n'existe).</p>
+
+      <button id="btn-tout-supprimer-images" class="btn-danger">🗑️ Tout supprimer</button>
+      <p id="msg-suppr-tout-images" class="msg hidden"></p>
+      <hr class="sep">
+      <div id="liste-images-orphelines">
+        <p class="chargement">Chargement...</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { ADMIN_EMAIL } from './auth-config.js';
+    import { onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+    import { ExerciceService } from './services/ExerciceService.js';
+
+    const btnLogout = document.getElementById('btn-logout');
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      if (user.email !== ADMIN_EMAIL) {
+        signOut(auth).finally(() => { window.location.href = 'login.html'; });
+        return;
+      }
+      btnLogout.classList.remove('hidden');
+    });
+
+    btnLogout.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+
+    function afficherMsg(el, texte, erreur = false) {
+      el.textContent = texte;
+      el.className = 'msg ' + (erreur ? 'msg-erreur' : 'msg-ok');
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+
+    const listeImages = document.getElementById('liste-images-orphelines');
+    const compteImages = document.getElementById('compte-images');
+    const btnToutSupprimerImages = document.getElementById('btn-tout-supprimer-images');
+    const msgSupprToutImages = document.getElementById('msg-suppr-tout-images');
+
+    let imagesActuelles = [];
+
+    async function rafraichirListe() {
+      imagesActuelles = await ExerciceService.listerImagesOrphelines();
+      afficherListe();
+    }
+
+    function afficherListe() {
+      compteImages.textContent = imagesActuelles.length
+        ? `${imagesActuelles.length} image${imagesActuelles.length > 1 ? 's' : ''}`
+        : '';
+
+      if (imagesActuelles.length === 0) {
+        listeImages.innerHTML = '<p class="vide">Aucune image orpheline 🎉</p>';
+        return;
+      }
+
+      listeImages.innerHTML = '';
+      imagesActuelles.forEach(img => {
+        const row = document.createElement('div');
+        row.className = 'bloc-exercice';
+        row.innerHTML = `
+          <img src="${img.url}" alt="" style="width:48px; height:48px; object-fit:cover; border-radius:8px; flex-shrink:0">
+          <div class="bloc-info">
+            <div class="bloc-nom">${img.nom}</div>
+          </div>
+          <button class="btn-danger btn-supprimer-image" title="Supprimer">🗑️</button>
+        `;
+        row.querySelector('.btn-supprimer-image').addEventListener('click', async () => {
+          if (!confirm(`Supprimer l'image « ${img.nom} » ?`)) return;
+          await ExerciceService.supprimerImageOrpheline(img.nom);
+          await rafraichirListe();
+        });
+        listeImages.appendChild(row);
+      });
+    }
+
+    btnToutSupprimerImages.addEventListener('click', async () => {
+      if (imagesActuelles.length === 0) return;
+      if (!confirm(`Supprimer définitivement les ${imagesActuelles.length} images orphelines ? Cette action est irréversible.`)) return;
+      btnToutSupprimerImages.disabled = true;
+
+      const resultats = await Promise.allSettled(imagesActuelles.map(img => ExerciceService.supprimerImageOrpheline(img.nom)));
+      const ko = resultats.filter(r => r.status === 'rejected').length;
+      const ok = resultats.length - ko;
+
+      await rafraichirListe();
+      btnToutSupprimerImages.disabled = false;
+      afficherMsg(msgSupprToutImages, ko === 0
+        ? `✅ ${ok} image${ok > 1 ? 's' : ''} supprimée${ok > 1 ? 's' : ''}.`
+        : `⚠️ ${ok} supprimée(s), ${ko} en échec.`, ko > 0);
+    });
+
+    await rafraichirListe();
+  </script>
+
+</body>
+</html>

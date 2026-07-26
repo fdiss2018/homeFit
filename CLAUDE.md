@@ -48,6 +48,7 @@ public/
 ├── execution.html             # Écran d'exécution guidée (minuteur, enchaînement auto ou validation manuelle)
 ├── login.html                 # Connexion / inscription (Firebase Auth)
 ├── admin.html                 # Import/export, ajout/modification/suppression manuelle ou via IA (1 à N exercices), réservé à ADMIN_EMAIL
+├── admin-images.html          # Sous-page admin : images Storage orphelines (sans exercice associé), suppression individuelle/en masse
 ├── firebase-config.example.js # Modèle de config Firebase (à copier en firebase-config.js, gitignoré) — Auth uniquement
 ├── api-config.example.js      # Modèle d'URL du backend (à copier en api-config.js, gitignoré)
 ├── auth-config.js             # Email admin autorisé sur admin.html
@@ -635,6 +636,15 @@ voir **`GOOGLE.md`**.
   renommage), voir `backend/src/repositories/ImageRepository.js` et `GOOGLE.md`
 - Disponible uniquement sur un exercice **déjà enregistré** (pas au moment de la création initiale) :
   simplification assumée, l'admin crée d'abord l'exercice puis l'édite pour y ajouter une image
+- Suppression d'un exercice (`DELETE /api/exercices/:id`) purge aussi son image associée dans
+  Storage (bug initial corrigé : la route ne supprimait que le document Firestore, laissant un
+  fichier orphelin). Une image reste malgré tout orpheline si le fichier a été déposé/l'exercice
+  supprimé directement dans Firebase Storage sans passer par l'app — `admin-images.html` (lien
+  "🖼️ Images orphelines" depuis `admin.html`) liste ces images (`GET
+  /api/exercices/images-orphelines`, comparaison des noms de fichiers du bucket — dérivés de l'id
+  d'exercice — contre les ids Firestore existants) et permet de les supprimer individuellement ou en
+  masse (`DELETE /api/exercices/images-orphelines/:nom`). Téléchargement volontairement pas encore
+  traité : recoupe l'export JSON existant (qui n'exporte pas les images), à revoir ensemble plus tard
 
 ### 🔜 Étape 4 — Suivi de progression
 - Statistiques par exercice (progression du nombre de reps/temps dans la durée)
