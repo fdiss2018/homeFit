@@ -16,6 +16,8 @@
   </header>
 
   <main>
+    <a href="admin-images.html" class="lien-retour">🖼️ Images orphelines</a>
+
     <div class="carte">
       <p class="carte-titre">📚 Bibliothèque d'exercices</p>
       <p class="carte-desc">Importe un fichier JSON (tableau d'exercices ou <code>{ "exercices": [...] }</code>).
@@ -392,8 +394,15 @@
     // l'exercice doit déjà être enregistré (voir CLAUDE.md).
     const TAILLE_MAX_IMAGE = 3 * 1024 * 1024; // 3 Mo
 
+    // Traquée séparément (pas juste lue depuis le DOM au moment d'enregistrer) car le formulaire
+    // principal doit la renvoyer telle quelle à chaque "Enregistrer"/"Mettre à jour" — sans ça,
+    // new Exercice({...}) ci-dessous retomberait sur image = '' par défaut et écraserait en base
+    // l'image déjà téléversée à chaque sauvegarde du reste du formulaire.
+    let imageActuelleExercice = '';
+
     function majApercuImage(url) {
-      apercuImageExercice.src = url || '';
+      imageActuelleExercice = url || '';
+      apercuImageExercice.src = imageActuelleExercice;
       apercuImageExercice.classList.toggle('hidden', !url);
       btnSupprimerImageExercice.classList.toggle('hidden', !url);
     }
@@ -471,7 +480,8 @@
         valeurDefautRepetitions: Math.max(1, parseInt(repsExerciceEl.value, 10) || 10),
         valeurDefautDuree: Math.max(1, parseInt(dureeExerciceEl.value, 10) || 30),
         description: descriptionExerciceEl.value.trim(),
-        instructions: instructionsExerciceEl.value.trim()
+        instructions: instructionsExerciceEl.value.trim(),
+        image: imageActuelleExercice
       });
 
       btnEnregistrerExercice.disabled = true;

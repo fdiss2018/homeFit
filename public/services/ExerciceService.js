@@ -27,5 +27,13 @@ export const ExerciceService = {
 
   async supprimerImage(id) {
     await ApiClient.delete(`/api/exercices/${id}/image`);
+  },
+
+  async listerImagesOrphelines() {
+    return ApiClient.get('/api/exercices/images-orphelines');
+  },
+
+  async supprimerImageOrpheline(nom) {
+    await ApiClient.delete(`/api/exercices/images-orphelines/${encodeURIComponent(nom)}`);
   }
 };
