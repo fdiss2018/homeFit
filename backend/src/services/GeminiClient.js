@@ -7,6 +7,7 @@
 // client-side restreinte uniquement par référent HTTP.
 import { construireRequeteCriteresIA, construireRequeteSeanceIA, validerSeanceIA } from '../domain/InterpreterSeanceIA.js';
 import { construireRequeteExercicesIA, validerExercicesIA } from '../domain/InterpreterExerciceIA.js';
+import { construireRequeteImageExerciceIA } from '../domain/InterpreterImageExerciceIA.js';
 import { validerCriteresIA } from '../domain/InterpreterDemandeIA.js';
 import { filtrerExercices } from '../domain/GenerateurSeance.js';
 
@@ -23,8 +24,9 @@ const DELAI_MAX_MS = 30_000;
 // attendre l'utilisateur plus longtemps dans le pire cas plutôt que d'échouer trop vite.
 const TENTATIVES_MAX = 5;
 
-async function appelerGeminiUneFois(requete) {
-  const modele = process.env.GEMINI_MODEL;
+// Appel HTTP brut commun aux deux familles de modèles (texte/JSON et image) — seule la façon
+// d'extraire le résultat des `parts` de la réponse diffère, via `extraireResultat`.
+async function appelerModeleUneFois(modele, requete, extraireResultat) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modele}:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
   let reponse;
@@ -43,21 +45,36 @@ async function appelerGeminiUneFois(requete) {
   if (!reponse.ok) {
     if (reponse.status === 429) throw new Error('Quota gratuit de l\'IA atteint pour le moment, réessaie plus tard.');
     if (reponse.status === 404) {
-      throw new Error(`Modèle IA "${modele}" indisponible (retiré par Google) — mets à jour GEMINI_MODEL côté backend (voir ai.google.dev/gemini-api/docs/models).`);
+      throw new Error(`Modèle IA "${modele}" indisponible (retiré par Google) — mets à jour la variable d'environnement backend correspondante (voir ai.google.dev/gemini-api/docs/models).`);
     }
     throw new Error(`Erreur de l'API Gemini (${reponse.status}).`);
   }
 
   const donnees = await reponse.json();
   const finishReason = donnees.candidates?.[0]?.finishReason;
-  const texte = donnees.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!texte || finishReason === 'MAX_TOKENS') throw new Error('DEGENERE');
+  return extraireResultat(donnees.candidates?.[0]?.content?.parts, finishReason);
+}
 
-  try {
-    return JSON.parse(texte);
-  } catch {
-    throw new Error('DEGENERE');
-  }
+function appelerGeminiUneFois(requete) {
+  return appelerModeleUneFois(process.env.GEMINI_MODEL, requete, (parts, finishReason) => {
+    const texte = parts?.[0]?.text;
+    if (!texte || finishReason === 'MAX_TOKENS') throw new Error('DEGENERE');
+    try {
+      return JSON.parse(texte);
+    } catch {
+      throw new Error('DEGENERE');
+    }
+  });
+}
+
+// Une image Gemini revient dans une forme différente d'un appel texte/JSON : les octets base64 sont
+// dans parts[].inlineData.data (pas parts[0].text), pas de JSON à parser.
+function appelerGeminiImageUneFois(requete) {
+  return appelerModeleUneFois(process.env.GEMINI_IMAGE_MODEL, requete, (parts, finishReason) => {
+    const partie = parts?.find(p => p.inlineData);
+    if (!partie || finishReason === 'MAX_TOKENS') throw new Error('DEGENERE');
+    return { base64: partie.inlineData.data, mimeType: partie.inlineData.mimeType };
+  });
 }
 
 // Un 429/404/autre échec HTTP n'a aucune raison de mieux se passer immédiatement après — seules
@@ -68,11 +85,11 @@ async function appelerGeminiUneFois(requete) {
 //   pour ne pas faire attendre l'utilisateur 5 × 30s dans le pire cas.
 const BUDGETS_RETRY = { DEGENERE: TENTATIVES_MAX, TIMEOUT: 2 };
 
-async function appelerGemini(requete) {
+async function avecRetry(appelUneFois, requete) {
   let derniereErreur;
   for (let tentative = 1; tentative <= TENTATIVES_MAX; tentative++) {
     try {
-      return await appelerGeminiUneFois(requete);
+      return await appelUneFois(requete);
     } catch (err) {
       const budget = BUDGETS_RETRY[err.message];
       if (!budget) throw err; // erreur non transitoire : ne jamais retenter
@@ -85,6 +102,9 @@ async function appelerGemini(requete) {
     ? "L'IA a mis trop de temps à répondre, réessaie."
     : "Réponse de l'IA invalide, réessaie.");
 }
+
+function appelerGemini(requete) { return avecRetry(appelerGeminiUneFois, requete); }
+function appelerGeminiImage(requete) { return avecRetry(appelerGeminiImageUneFois, requete); }
 
 export const GeminiClient = {
   // Deux appels Gemini plutôt qu'un : le premier (léger, sans catalogue) déduit des critères
@@ -110,5 +130,9 @@ export const GeminiClient = {
   async interpreterExercices(description, exercicesDisponibles) {
     const requete = construireRequeteExercicesIA(description, exercicesDisponibles);
     return validerExercicesIA(await appelerGemini(requete), exercicesDisponibles);
+  },
+
+  async genererImageExercice(nom, description) {
+    return appelerGeminiImage(construireRequeteImageExerciceIA(nom, description));
   }
 };

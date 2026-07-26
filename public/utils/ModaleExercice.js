@@ -36,6 +36,7 @@ export function afficherModaleExercice(exercice) {
         ${groupeLibelle ? `<p class="carte-desc" style="margin:0">${groupeLibelle}</p>` : ''}
       </div>
     </div>
+    ${exercice.image ? `<img src="${exercice.image}" alt="Illustration de l'exercice" class="exercice-image-illustration">` : ''}
     ${exercice.niveau ? `<p class="carte-desc">🎚️ ${NIVEAU_LIBELLE[exercice.niveau] || exercice.niveau} · 🛠️ ${materiel}</p>` : ''}
     ${exercice.valeurDefautRepetitions !== undefined ? `<p class="carte-desc">🔁 ${exercice.valeurDefautRepetitions} répétitions · ⏱️ ${exercice.valeurDefautDuree}s</p>` : ''}
     ${exercice.description ? `<p class="carte-desc">${exercice.description}</p>` : ''}

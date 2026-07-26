@@ -158,6 +158,11 @@ gcloud iam service-accounts keys create homefit-ci-deployer-key.json \
 - **Firestore Database** : accédée **uniquement par le backend** (Admin SDK) depuis la migration
   vers un backend séparé — plus aucun accès direct depuis le navigateur
 - **Authentication** : Email/mot de passe + Google, entièrement côté front
+- **Storage** : stocke les illustrations d'exercice (`exercices/<id>.<ext>`), accédée **uniquement
+  par le backend** (Admin SDK, même principe que Firestore). À activer manuellement une fois :
+  Console Firebase → Storage → "Commencer" (règles de sécurité par défaut sans importance, seul
+  l'Admin SDK y accède). Le nom de bucket doit correspondre à celui de
+  `public/firebase-config.js` (`storageBucket`), attendu : `homefit-sh56.firebasestorage.app`.
 
 ### Config web app (`public/firebase-config.js`)
 Fichier gitignoré, à copier depuis `public/firebase-config.example.js`. Contient la config web
@@ -181,6 +186,16 @@ Pas de fichier `firestore.rules` dans ce repo (supprimé — code mort) : la pro
 de règles mais de l'architecture elle-même, aucun SDK client n'accède jamais à Firestore, seul
 l'Admin SDK (backend) le fait, et il contourne de toute façon les règles de sécurité. Écrire des
 règles n'aurait donc protégé rien de réel.
+
+### Accès Storage pour le backend
+Le compte de service d'exécution Cloud Run (SA par défaut du projet, pas `homefit-ci-deployer` qui
+ne fait que déployer) doit pouvoir écrire dans le bucket Storage — à accorder une fois, manuellement :
+```bash
+gcloud storage buckets add-iam-policy-binding gs://homefit-sh56.firebasestorage.app \
+  --member="serviceAccount:194834616546-compute@developer.gserviceaccount.com" \
+  --role="roles/storage.objectAdmin" \
+  --project=homefit-sh56
+```
 
 ## Google Cloud — backend (Cloud Run)
 
@@ -281,6 +296,8 @@ Source de vérité des clés : `backend/.env.example`. Où obtenir chaque valeur
 | `CORS_ALLOWED_ORIGIN` | `http://localhost:5000,https://homefit-sh56.web.app` |
 | `GEMINI_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) *(optionnel — assistant IA)* |
 | `GEMINI_MODEL` | `gemini-flash-lite-latest` (alias Google, voir "Churn des modèles" dans `CLAUDE.md`) |
+| `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` — non sensible, mis en dur dans `deploy.yml` (pas de secret GitHub). En cas de 404, vérifier via `ListModels` (même logique que `GEMINI_MODEL`) et corriger par une PR modifiant la ligne `--set-env-vars` |
+| `FIREBASE_STORAGE_BUCKET` | Console Firebase → Storage — non sensible, mis en dur dans `deploy.yml`. Doit correspondre à `public/firebase-config.js` |
 | `STATIC_API_TOKEN` | Généré une fois (`openssl rand -hex 32`) *(optionnel — tests Postman)* |
 
 ## API Gemini

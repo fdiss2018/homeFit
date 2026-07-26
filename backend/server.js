@@ -21,7 +21,9 @@ app.use(cors({
     callback(new Error(`Origine non autorisée : ${origin}`));
   }
 }));
-app.use(express.json());
+// Limite par défaut d'Express (100kb) trop basse pour les images d'exercice envoyées en base64
+// (upload manuel ou génération IA) — voir routes/exercices.js et routes/ia.js.
+app.use(express.json({ limit: '6mb' }));
 
 app.use('/api', authentifier, whoamiRouter);
 app.use('/api/exercices', authentifier, exercicesRouter);
