@@ -92,6 +92,17 @@
         <label for="instructions-exercice">Instructions</label>
         <textarea id="instructions-exercice" class="input" rows="3"></textarea>
       </div>
+      <div class="champ hidden" id="bloc-image-exercice">
+        <label>Illustration</label>
+        <img id="apercu-image-exercice" class="exercice-image-illustration hidden">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px">
+          <label for="fichier-image-exercice" class="btn-secondaire">📷 Choisir une image</label>
+          <input type="file" id="fichier-image-exercice" accept="image/*" class="hidden">
+          <button id="btn-generer-image-ia" class="btn-secondaire" type="button">🖼️ Générer par IA</button>
+          <button id="btn-supprimer-image-exercice" class="btn-danger hidden" type="button">🗑️ Supprimer</button>
+        </div>
+        <p id="msg-image-exercice" class="msg hidden"></p>
+      </div>
 
       <div style="display:flex; gap:10px">
         <button id="btn-enregistrer-exercice" class="btn-primaire" style="flex:1">💾 Enregistrer</button>
@@ -310,6 +321,12 @@
     const dureeExerciceEl     = document.getElementById('duree-exercice');
     const descriptionExerciceEl = document.getElementById('description-exercice');
     const instructionsExerciceEl = document.getElementById('instructions-exercice');
+    const blocImageExercice = document.getElementById('bloc-image-exercice');
+    const apercuImageExercice = document.getElementById('apercu-image-exercice');
+    const fichierImageExerciceInput = document.getElementById('fichier-image-exercice');
+    const btnGenererImageIA = document.getElementById('btn-generer-image-ia');
+    const btnSupprimerImageExercice = document.getElementById('btn-supprimer-image-exercice');
+    const msgImageExercice = document.getElementById('msg-image-exercice');
     const btnEnregistrerExercice = document.getElementById('btn-enregistrer-exercice');
     const btnAnnulerEditionExercice = document.getElementById('btn-annuler-edition-exercice');
     const msgFormExercice = document.getElementById('msg-form-exercice');
@@ -342,6 +359,8 @@
       dureeExerciceEl.value = 30;
       descriptionExerciceEl.value = '';
       instructionsExerciceEl.value = '';
+      blocImageExercice.classList.add('hidden');
+      majApercuImage('');
     }
 
     function remplirFormulaireExercice(ex) {
@@ -363,8 +382,77 @@
       btnEnregistrerExercice.textContent = '💾 Mettre à jour';
       btnAnnulerEditionExercice.classList.remove('hidden');
       remplirFormulaireExercice(ex);
+      blocImageExercice.classList.remove('hidden');
+      majApercuImage(ex.image);
       titreFormExercice.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // ── Illustration de l'exercice (upload manuel ou génération IA) — uniquement disponible en
+    // édition (idExerciceEnEdition défini) : le chemin de stockage dépend de l'id Firestore, donc
+    // l'exercice doit déjà être enregistré (voir CLAUDE.md).
+    const TAILLE_MAX_IMAGE = 3 * 1024 * 1024; // 3 Mo
+
+    function majApercuImage(url) {
+      apercuImageExercice.src = url || '';
+      apercuImageExercice.classList.toggle('hidden', !url);
+      btnSupprimerImageExercice.classList.toggle('hidden', !url);
+    }
+
+    fichierImageExerciceInput.addEventListener('change', () => {
+      const fichier = fichierImageExerciceInput.files[0];
+      if (!fichier) return;
+      if (fichier.size > TAILLE_MAX_IMAGE) {
+        afficherMsg(msgImageExercice, '❌ Image trop lourde (max 3 Mo).', true);
+        fichierImageExerciceInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async e => {
+        const [entete, base64] = e.target.result.split(',');
+        const mimeType = entete.match(/data:(.*);base64/)[1];
+        try {
+          const { image } = await ExerciceService.televerserImage(idExerciceEnEdition, base64, mimeType);
+          majApercuImage(image);
+          await rafraichirListe();
+          afficherMsg(msgImageExercice, '✅ Image mise à jour.');
+        } catch (err) {
+          afficherMsg(msgImageExercice, `❌ ${err.message}`, true);
+        }
+        fichierImageExerciceInput.value = '';
+      };
+      reader.readAsDataURL(fichier);
+    });
+
+    btnGenererImageIA.addEventListener('click', async () => {
+      btnGenererImageIA.disabled = true;
+      btnGenererImageIA.textContent = '🖼️ Génération en cours...';
+      try {
+        const { GeminiService } = await import('./services/GeminiService.js');
+        const { image } = await GeminiService.genererImageExercice(
+          idExerciceEnEdition, nomExerciceEl.value.trim(), descriptionExerciceEl.value.trim());
+        majApercuImage(image);
+        await rafraichirListe();
+        afficherMsg(msgImageExercice, '✅ Image générée.');
+      } catch (err) {
+        afficherMsg(msgImageExercice, `❌ ${err.message}`, true);
+      } finally {
+        btnGenererImageIA.disabled = false;
+        btnGenererImageIA.textContent = '🖼️ Générer par IA';
+      }
+    });
+
+    btnSupprimerImageExercice.addEventListener('click', async () => {
+      if (!confirm("Supprimer l'image de cet exercice ?")) return;
+      try {
+        await ExerciceService.supprimerImage(idExerciceEnEdition);
+        majApercuImage('');
+        await rafraichirListe();
+        afficherMsg(msgImageExercice, '✅ Image supprimée.');
+      } catch (err) {
+        afficherMsg(msgImageExercice, `❌ ${err.message}`, true);
+      }
+    });
 
     btnAnnulerEditionExercice.addEventListener('click', reinitialiserFormulaireExercice);
 

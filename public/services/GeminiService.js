@@ -7,5 +7,9 @@ import { ApiClient } from './ApiClient.js';
 export const GeminiService = {
   async interpreterExercices(description) {
     return ApiClient.post('/api/ia/interpreter-exercices', { description });
+  },
+
+  async genererImageExercice(id, nom, description) {
+    return ApiClient.post('/api/ia/generer-image-exercice', { id, nom, description });
   }
 };

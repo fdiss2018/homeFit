@@ -389,6 +389,18 @@ hr.sep {
 }
 .controles-execution button { flex: 1; }
 
+/* ── Illustration d'exercice (aperçu admin, modale de détail, écran d'exécution) ── */
+.exercice-image-illustration {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain; /* pas cover : ne pas rogner la grille 3x3 générée par l'IA */
+  background: #fff;
+  border: 1px solid var(--bordure);
+  border-radius: var(--radius);
+  margin: 12px 0;
+}
+
 /* ── Icônes de groupes musculaires ── */
 .icone-groupe {
   border-radius: 8px;

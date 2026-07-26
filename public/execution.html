@@ -28,6 +28,7 @@
       <p class="badge" id="exercice-groupe" style="display:flex; align-items:center; gap:6px; margin:0 auto 10px; width:fit-content"></p>
       <p class="carte-desc" id="exercice-description" style="text-align:center"></p>
       <p class="carte-desc" id="exercice-instructions" style="text-align:center"></p>
+      <img id="exercice-image" class="exercice-image-illustration hidden">
       <span class="badge" id="badge-phase"></span>
 
       <div class="minuteur-zone hidden" id="minuteur-zone">
@@ -69,6 +70,7 @@
       exerciceGroupe: document.getElementById('exercice-groupe'),
       exerciceDescription: document.getElementById('exercice-description'),
       exerciceInstructions: document.getElementById('exercice-instructions'),
+      exerciceImage: document.getElementById('exercice-image'),
       badgePhase: document.getElementById('badge-phase'),
       minuteurZone: document.getElementById('minuteur-zone'),
       anneau: document.getElementById('minuteur-anneau'),
@@ -138,6 +140,13 @@
         : '';
       els.exerciceDescription.textContent = exerciceComplet?.description || '';
       els.exerciceInstructions.textContent = exerciceComplet?.instructions || '';
+      if (exerciceComplet?.image) {
+        els.exerciceImage.src = exerciceComplet.image;
+        els.exerciceImage.classList.remove('hidden');
+      } else {
+        els.exerciceImage.classList.add('hidden');
+        els.exerciceImage.src = '';
+      }
 
       if (etape.estAuto) {
         phase = 'effort';

@@ -19,5 +19,13 @@ export const ExerciceService = {
 
   async supprimer(id) {
     await ApiClient.delete(`/api/exercices/${id}`);
+  },
+
+  async televerserImage(id, imageBase64, mimeType) {
+    return ApiClient.post(`/api/exercices/${id}/image`, { imageBase64, mimeType });
+  },
+
+  async supprimerImage(id) {
+    await ApiClient.delete(`/api/exercices/${id}/image`);
   }
 };

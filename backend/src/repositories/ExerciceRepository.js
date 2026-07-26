@@ -18,6 +18,10 @@ export const ExerciceRepository = {
     await db.collection(COLLECTION).doc(id).update(exercice.toFirestore());
   },
 
+  async mettreAJourImage(id, image) {
+    await db.collection(COLLECTION).doc(id).update({ image });
+  },
+
   async supprimer(id) {
     await db.collection(COLLECTION).doc(id).delete();
   }

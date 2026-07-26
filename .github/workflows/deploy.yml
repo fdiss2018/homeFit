@@ -69,6 +69,9 @@ jobs:
       # écrivait un YAML temporaire). Les valeurs non sensibles viennent de secrets GitHub, seule
       # source de vérité (plus de dérive avec un backend/.env local périmé). Délimiteur ";" au lieu
       # de "," car CORS_ALLOWED_ORIGIN contient elle-même des virgules.
+      # GEMINI_IMAGE_MODEL/FIREBASE_STORAGE_BUCKET : en dur ici plutôt qu'en secret GitHub — ce ne
+      # sont pas des données sensibles, et un changement (ex. churn du modèle) passe alors par une PR
+      # normale avec historique git, plutôt qu'un réglage opaque dans les Settings du repo.
       - name: Déployer sur Cloud Run
         run: |
           gcloud run deploy homefit-backend \
@@ -77,7 +80,7 @@ jobs:
             --project=homefit-sh56 \
             --allow-unauthenticated \
             --max-instances=2 \
-            --set-env-vars="^;^ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }};GEMINI_MODEL=${{ secrets.GEMINI_MODEL }};CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }}" \
+            --set-env-vars="^;^ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }};GEMINI_MODEL=${{ secrets.GEMINI_MODEL }};CORS_ALLOWED_ORIGIN=${{ secrets.CORS_ALLOWED_ORIGIN }};GEMINI_IMAGE_MODEL=gemini-2.5-flash-image;FIREBASE_STORAGE_BUCKET=homefit-sh56.firebasestorage.app" \
             --set-secrets="FIREBASE_SERVICE_ACCOUNT_JSON=FIREBASE_SERVICE_ACCOUNT_JSON:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,STATIC_API_TOKEN=STATIC_API_TOKEN:latest"
 
       - name: Vérifier que le backend répond (health-check)

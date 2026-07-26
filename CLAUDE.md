@@ -75,16 +75,18 @@ backend/
 ├── .env.example                 # Modèle de variables d'environnement (à copier en .env, gitignoré)
 ├── package.json
 └── src/
-    ├── firebaseAdmin.js         # Init firebase-admin (Firestore + vérification des tokens Auth)
+    ├── firebaseAdmin.js         # Init firebase-admin (Firestore, Storage, vérification des tokens Auth)
     ├── domain/                  # Logique pure — copie du domaine front (voir "Modèle de domaine")
     │   ├── constantes.js, Exercice.js, Seance.js
     │   ├── GenerateurSeance.js    # filtrerExercices() + genererSeance() — la vraie décision métier
     │   ├── InterpreterDemandeIA.js  # validerCriteresIA() — réutilisé par InterpreterSeanceIA.js
     │   ├── InterpreterSeanceIA.js   # génération de séance par IA (sélection directe des exercices)
     │   ├── InterpreterExerciceIA.js # construction/validation de la requête Gemini (fiche exercice)
+    │   ├── InterpreterImageExerciceIA.js # construction de la requête Gemini (illustration d'exercice)
     ├── repositories/
     │   ├── ExerciceRepository.js  # Accès Firestore (collection `exercices`) via l'Admin SDK
-    │   └── SeanceRepository.js    # Accès Firestore (sous-collection `joueurs/{uid}/seances`)
+    │   ├── SeanceRepository.js    # Accès Firestore (sous-collection `joueurs/{uid}/seances`)
+    │   └── ImageRepository.js     # Accès Firebase Storage (illustrations d'exercice) via l'Admin SDK
     ├── services/
     │   └── GeminiClient.js        # Appel réseau vers l'API Gemini (clé côté serveur uniquement)
     ├── middleware/
@@ -93,9 +95,9 @@ backend/
     │   └── requireUid.js           # 400 si req.uid est absent
     └── routes/
         ├── whoami.js               # Diagnostic (confirme comment l'auth a résolu la requête)
-        ├── exercices.js            # /api/exercices — lecture publique, écriture réservée admin
+        ├── exercices.js            # /api/exercices — lecture publique, écriture + image réservées admin
         ├── seances.js              # /api/seances — génération/recalcul publics, CRUD des séances personnelles réservé à un uid résolu
-        └── ia.js                   # /api/ia — generer-seance public, interpreter-exercices réservé admin
+        └── ia.js                   # /api/ia — generer-seance public, interpreter-exercices/generer-image-exercice réservés admin
 ```
 
 ## Architecture front/backend
@@ -284,12 +286,14 @@ nouvelles entrées, jamais de mise à jour par id). Seule validation : chaque s�
 avoir un tableau `blocs` non vide ; la durée estimée est toujours recalculée
 (`calculerDureeEstimeeMinutes`) plutôt que de faire confiance à la valeur du fichier importé.
 
-## Assistant IA (description en langage naturel → séance générée ou fiche exercice)
+## Assistant IA (description en langage naturel → séance générée, fiche exercice ou illustration)
 
-Deux usages de l'API Gemini (niveau gratuit, sans carte bancaire), tous deux conçus sur le même
-principe : **l'IA ne choisit/n'écrit jamais rien directement dans Firestore**, elle ne fait que
-pré-remplir un résultat (séance générée, fiche exercice) que l'utilisateur relit et valide
-lui-même avant enregistrement.
+Trois usages de l'API Gemini (niveau gratuit, sans carte bancaire), conçus sur le même principe :
+**l'IA ne choisit/n'écrit jamais rien directement dans Firestore**, elle ne fait que pré-remplir un
+résultat (séance générée, fiche exercice, illustration) que l'utilisateur relit et valide lui-même
+avant enregistrement — à l'exception de la génération d'illustration (voir plus bas), qui écrit
+directement le résultat sur un exercice déjà enregistré, l'admin pouvant régénérer ou supprimer s'il
+n'est pas satisfait.
 
 - Sur `generateur.html` ("Décris ta séance") : un seul appel côté front (`SeanceService.genererParIA()`,
   `POST /api/ia/generer-seance`) où l'IA choisit **directement** dans la bibliothèque d'exercices
@@ -313,6 +317,13 @@ lui-même avant enregistrement.
   niveau de détail concret (muscle ciblé + effet recherché + précaution éventuelle pour la
   description ; position de départ + mouvement + point de vigilance pour les instructions) — un
   champ vide ou vague n'est pas acceptable pour une fiche écrite dans la bibliothèque partagée.
+- Sur `admin.html`, en édition d'un exercice ("🖼️ Générer par IA") : génère une illustration
+  (image, pas du JSON) à partir d'un gabarit de prompt fixe (grille 3x3 d'étapes du mouvement, style
+  3D vectoriel épuré, groupe musculaire ciblé en rouge) complété par le nom et la description de
+  l'exercice. Contrairement aux deux usages ci-dessus, disponible **uniquement sur un exercice déjà
+  enregistré** (le chemin de stockage dérive de son id Firestore, voir "Modèle de données Firestore")
+  — pas au moment de la création initiale. Une image peut aussi être ajoutée manuellement ("📷
+  Choisir une image", upload direct, même stockage) sans passer par l'IA.
 
 **Répartition front/backend** :
 
@@ -351,15 +362,36 @@ lui-même avant enregistrement.
   invalide (nom/groupeMusculaire) est **ignoré silencieusement** plutôt que de faire échouer tout le
   lot (même règle que l'import JSON) — l'appel n'échoue que si **aucune** proposition n'est
   exploitable. Logique pure, testée sans réseau (`backend/tests/InterpreterExerciceIA.test.js`).
+- `backend/src/domain/InterpreterImageExerciceIA.js` : une seule fonction,
+  `construireRequeteImageExerciceIA(nom, description)`, concatène le gabarit de prompt fixe avec le
+  nom/la description de l'exercice. Pas de `responseSchema`/`responseMimeType` (sortie image, pas
+  JSON textuel) donc pas de fonction de validation associée — rien à valider structurellement, juste
+  des octets bruts. Logique pure, testée sans réseau
+  (`backend/tests/InterpreterImageExerciceIA.test.js`).
+- `backend/src/repositories/ImageRepository.js` : accès Firebase Storage (Admin SDK) — chemin
+  `exercices/<id>.<ext>` dérivé de l'id Firestore de l'exercice (stable, jamais de collision,
+  contrairement à un nommage par nom d'exercice qui orphelinerait un fichier au moindre renommage).
+  `televerser(id, base64, mimeType)` purge systématiquement l'image précédente avant d'écrire (une
+  régénération peut changer d'extension), puis rend le fichier public (`makePublic()`) et renvoie son
+  URL `storage.googleapis.com` — pas d'URL signée : les illustrations sont déjà au même niveau de
+  confidentialité que le reste de la bibliothèque (`GET /api/exercices`, public), une URL signée
+  expirerait sans job de renouvellement pour la renouveler.
 - `backend/src/services/GeminiClient.js` : seul point d'appel réseau (`fetch` vers
-  `generativelanguage.googleapis.com`, factorisé dans une fonction privée `appelerGemini()` commune
-  à tous les usages). `GEMINI_API_KEY`/`GEMINI_MODEL` sont des variables d'environnement **serveur**
+  `generativelanguage.googleapis.com`, factorisé dans une fonction privée `appelerModeleUneFois()`
+  commune à tous les usages, y compris l'image — seule la façon d'extraire le résultat des `parts`
+  de la réponse diffère : `parts[0].text` à parser en JSON pour les deux premiers usages,
+  `parts[].inlineData.{data,mimeType}` (base64, pas de JSON) pour l'illustration).
+  `GEMINI_API_KEY`/`GEMINI_MODEL`/`GEMINI_IMAGE_MODEL` sont des variables d'environnement **serveur**
   (`backend/.env`) — jamais envoyées au navigateur, contrairement à l'ancienne implémentation
   client-side restreinte uniquement par référent HTTP.
 - Routes : `POST /api/ia/generer-seance` (publique, comme la génération de séance manuelle qu'elle
-  remplace pour ce cas d'usage) et `POST /api/ia/interpreter-exercices` (réservée à `requireAdmin`,
-  puisqu'elle écrit potentiellement dans la bibliothèque partagée — une bibliothèque vide n'est pas
-  une erreur ici, contrairement à `/generer-seance` : tout revient simplement en "nouveaux").
+  remplace pour ce cas d'usage), `POST /api/ia/interpreter-exercices` et
+  `POST /api/ia/generer-image-exercice` (réservées à `requireAdmin`, la première puisqu'elle écrit
+  potentiellement dans la bibliothèque partagée — une bibliothèque vide n'est pas une erreur ici,
+  contrairement à `/generer-seance` : tout revient simplement en "nouveaux" — la seconde puisqu'elle
+  écrit l'illustration d'un exercice existant). L'upload manuel d'une image (sans IA) passe par
+  `POST /api/exercices/:id/image` (et `DELETE /api/exercices/:id/image` pour la retirer), dans
+  `routes/exercices.js` plutôt que `routes/ia.js` puisqu'aucun appel Gemini n'est impliqué.
 
 **Churn des modèles** : Google retire ses modèles gratuits assez vite et parfois sans préavis (vécu
 en juillet 2026 avec `gemini-2.5-flash-lite` puis `gemini-3-flash`, coupés du jour au lendemain).
@@ -370,6 +402,10 @@ malgré tout une erreur 404 "model not found", `GeminiClient.js` l'indique expli
 message d'erreur remonté au front : lister les modèles réellement disponibles pour la clé avec
 `GET https://generativelanguage.googleapis.com/v1beta/models?key=TA_CLE` (l'endpoint `ListModels`)
 plutôt que de se fier à la documentation ou à une recherche web, qui datent vite sur ce sujet.
+`GEMINI_IMAGE_MODEL` (famille de modèle différente, pas d'alias équivalent connu à ce jour) suit la
+même procédure en cas de 404 — valeur de départ (`gemini-2.5-flash-image`) non vérifiée contre l'API
+réelle au moment d'écrire cette section, à confirmer/ajuster à l'implémentation puis en cas de
+retrait futur.
 
 ## Gestion des utilisateurs
 
@@ -586,12 +622,25 @@ voir **`GOOGLE.md`**.
   d'autres pistes (previews Firebase par PR, backend de staging isolé) non implémentées à ce stade
 - Détail complet (secrets, commandes GCP, rollback) : voir la section "## CI/CD" de **`GOOGLE.md`**
 
+### ✅ Étape 3.7 — Illustration d'exercice (upload + génération IA)
+- Le champ `image` du modèle `Exercice` (présent depuis le début mais jamais utilisé) sert
+  désormais réellement : illustration du mouvement, affichée dans la modale de détail
+  (`exercices.html`/`generateur.html`/`mes-seances.html`) et sur l'écran d'exécution guidée
+  (`execution.html`)
+- Sur `admin.html`, en édition d'un exercice déjà enregistré : upload manuel d'un fichier image, ou
+  génération par IA (`GeminiClient.genererImageExercice()`) à partir d'un gabarit de prompt fixe
+  (grille 3x3 d'étapes du mouvement) + la description de l'exercice — voir "Assistant IA" plus haut
+- Stockage sur **Firebase Storage**, accédé **uniquement par le backend** (Admin SDK), même principe
+  que Firestore — chemin `exercices/<id>.<ext>` dérivé de l'id Firestore (stable, insensible au
+  renommage), voir `backend/src/repositories/ImageRepository.js` et `GOOGLE.md`
+- Disponible uniquement sur un exercice **déjà enregistré** (pas au moment de la création initiale) :
+  simplification assumée, l'admin crée d'abord l'exercice puis l'édite pour y ajouter une image
+
 ### 🔜 Étape 4 — Suivi de progression
 - Statistiques par exercice (progression du nombre de reps/temps dans la durée)
 - Graphique de fréquence des séances (jours actifs, streak)
 
 ### 🔜 Étape 5 — Fonctionnalités transverses
-- Images/gifs de démonstration par exercice
 - Favoris / séances personnalisées sauvegardées comme modèles réutilisables
 
 ---
