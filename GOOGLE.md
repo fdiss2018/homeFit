@@ -188,11 +188,15 @@ l'Admin SDK (backend) le fait, et il contourne de toute façon les règles de s�
 règles n'aurait donc protégé rien de réel.
 
 ### Accès Storage pour le backend
-Le compte de service d'exécution Cloud Run (SA par défaut du projet, pas `homefit-ci-deployer` qui
-ne fait que déployer) doit pouvoir écrire dans le bucket Storage — à accorder une fois, manuellement :
+`firebaseAdmin.js` s'authentifie avec `cert(serviceAccount)` (clé explicite de
+`FIREBASE_SERVICE_ACCOUNT_JSON`), pas avec les identifiants ambiants de Cloud Run — c'est donc le
+compte de service **Firebase Admin SDK** (`firebase-adminsdk-fbsvc@homefit-sh56.iam.gserviceaccount.com`,
+celui dont la clé est dans `FIREBASE_SERVICE_ACCOUNT_JSON`), pas le compute service account par
+défaut de Cloud Run, qui doit pouvoir écrire dans le bucket Storage — à accorder une fois,
+manuellement :
 ```bash
 gcloud storage buckets add-iam-policy-binding gs://homefit-sh56.firebasestorage.app \
-  --member="serviceAccount:194834616546-compute@developer.gserviceaccount.com" \
+  --member="serviceAccount:firebase-adminsdk-fbsvc@homefit-sh56.iam.gserviceaccount.com" \
   --role="roles/storage.objectAdmin" \
   --project=homefit-sh56
 ```
